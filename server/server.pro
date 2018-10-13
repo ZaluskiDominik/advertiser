@@ -29,13 +29,14 @@ SOURCES += \
         dialog.cpp \
     requests.cpp \
     tcpserver.cpp \
-    sockethandler.tpp
+    sockethandler.cpp
 
 HEADERS += \
         dialog.h \
     sockethandler.h \
     requests.h \
-    tcpserver.h
+    tcpserver.h \
+    requestreceiver.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

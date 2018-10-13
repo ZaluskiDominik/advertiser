@@ -1,11 +1,11 @@
 #include "tcpserver.h"
 #include <QtDebug>
-#include <QApplication>
 
 TcpServer::TcpServer(int _port, QObject* parent)
     :QTcpServer(parent)
 {
     port = _port;
+    initResponsesToRequests();
 }
 
 TcpServer::~TcpServer()
@@ -31,7 +31,7 @@ bool TcpServer::startServer()
     }
 }
 
-void TcpServer::onUserDisconnected(SocketHandler<TcpServer> *socketHandler)
+void TcpServer::onUserDisconnected(SocketHandler *socketHandler)
 {
     User* user = &getUserBySocketHandler(socketHandler);
     //delete user from memory
@@ -41,11 +41,51 @@ void TcpServer::onUserDisconnected(SocketHandler<TcpServer> *socketHandler)
     users.erase(userIterator, userIterator + 1);
 }
 
+void TcpServer::onDataReceived(Request request, SocketHandler *sender)
+{
+    (this->*responsesToRequests[request.name])(request, sender);
+}
+
+void TcpServer::initResponsesToRequests()
+{
+    responsesToRequests = std::vector< void (TcpServer::*)(Request&, SocketHandler*) >({
+        &TcpServer::onTextRequested
+    });
+}
+
 void TcpServer::incomingConnection(qintptr sockedId)
 {
     qDebug() << "New connection";
     //add a new user
-    users.push_back( new User(sockedId, *this) );
+    User* user;
+    try
+    {
+        user = new User(sockedId);
+    }
+    catch(QString& e)
+    {
+        //error occured, exit rejecting connetion
+        qDebug() << e;
+        return;
+    }
+
+    //receive thsi user's requests
+    registerRequestsReceiver(&user->socketHandler);
+    //connect user's socket disconnection signal to slot handling that event
+    QObject::connect(&user->socketHandler, SIGNAL(disconnected(SocketHandler*)), this, SLOT(onUserDisconnected()));
+    //add user to array
+    users.push_back(user);
+}
+
+void TcpServer::registerRequestsReceiver(SocketHandler *socketHandler)
+{
+    //receive all request listed in requests.h
+    std::vector<Request::RequestName> requestsNames;
+    for (int i = 0 ; i < Request::Count ; i++)
+        requestsNames.push_back( static_cast<Request::RequestName>(i) );
+
+    //register that requests in socketHandler
+    socketHandler->addRequestReceiver(requestsNames, *this);
 }
 
 void TcpServer::getUserId(QString login)
@@ -53,29 +93,14 @@ void TcpServer::getUserId(QString login)
     Q_UNUSED(login);
 }
 
-void TcpServer::registerSocketRequests(SocketHandler<TcpServer> &socketHandler)
-{
-    //here goes all callbacks to each request from client
-    //functions must be listed in the same order as requests are listed in requests.h file
-    std::vector< void (TcpServer::*)(QDataStream&, SocketHandler<TcpServer>*) > callbacks = {
-        &TcpServer::onTextRequested
-    };
-
-    //register those callbacks in given socket handler
-    for (unsigned int i = 0 ; i < callbacks.size() ; i++)
-        socketHandler.addReadyReadCallback(static_cast<Requests>(i), callbacks[i]);
-}
-
-User &TcpServer::getUserBySocketHandler(SocketHandler<TcpServer> *socketHandler)
+User &TcpServer::getUserBySocketHandler(SocketHandler *socketHandler)
 {
     unsigned int i;
     for (i = 0 ; &users[i]->socketHandler != socketHandler ; i++);
     return *users[i];
 }
 
-void TcpServer::onTextRequested(QDataStream &data, SocketHandler<TcpServer> *socketHandler)
+void TcpServer::onTextRequested(Request &data, SocketHandler *socketHandler)
 {
-    QString str;
-    data >> str;
-    qDebug() << "Text request: " << str << "\nId: " << getUserBySocketHandler(socketHandler).userId;
+    qDebug() << "Text request: " << data.data << "\nId: " << getUserBySocketHandler(socketHandler).userId;
 }

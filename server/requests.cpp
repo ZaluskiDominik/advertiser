@@ -1,16 +1,21 @@
 #include "requests.h"
 
-QDataStream& operator>>(QDataStream& stream, Requests& req)
+QDataStream& operator>>(QDataStream& stream, Request& req)
 {
     quint32 reqCode;
+    QByteArray bytes;
     stream >> reqCode;
-    req = static_cast<Requests>(req);
+    stream >> bytes;
+    req.name = static_cast<Request::RequestName>(reqCode);
+    req.data = bytes;
     return stream;
 }
 
-QDataStream& operator<<(QDataStream& stream, const Requests req)
+Request::operator QByteArray() const
 {
-    quint32 reqCode = static_cast<quint32>(req);
-    stream << reqCode;
-    return stream;
+    QByteArray bytes;
+    QDataStream stream (&bytes, QIODevice::WriteOnly);
+    stream << static_cast<quint32>(name);
+    stream << data;
+    return bytes;
 }

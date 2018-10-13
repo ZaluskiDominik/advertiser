@@ -2,10 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
-namespace Ui {
-class MainWindow;
-}
+#include <ui_mainwindow.h>
+#include <QStackedWidget>
+#include "loginwidget.h"
+#include <QTcpSocket>
 
 class MainWindow : public QMainWindow
 {
@@ -16,7 +16,20 @@ public:
     ~MainWindow();
 
 private:
-    Ui::MainWindow *ui;
+    Ui::MainWindow ui;
+
+    //widget displaying login form
+    LoginWidget loginWidget;
+    //widget displaying main application panel
+
+    QTcpSocket s;
+
+    //initialize stacked widget with login and main views
+    void initStackedWidget();
+
+private slots:
+    //widget displayed in stacked widget was changed
+    void onStackedWidgetChanged(int index);
 };
 
 #endif // MAINWINDOW_H
