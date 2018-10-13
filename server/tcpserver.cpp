@@ -49,7 +49,7 @@ void TcpServer::onDataReceived(Request request, SocketHandler *sender)
 void TcpServer::initResponsesToRequests()
 {
     responsesToRequests = std::vector< void (TcpServer::*)(Request&, SocketHandler*) >({
-        &TcpServer::onTextRequested
+        &TcpServer::onLoginAuthRequest
     });
 }
 
@@ -69,10 +69,10 @@ void TcpServer::incomingConnection(qintptr sockedId)
         return;
     }
 
-    //receive thsi user's requests
-    registerRequestsReceiver(&user->socketHandler);
+    //receive this user's requests
+    registerRequestsReceiver(user->socketHandler);
     //connect user's socket disconnection signal to slot handling that event
-    QObject::connect(&user->socketHandler, SIGNAL(disconnected(SocketHandler*)), this, SLOT(onUserDisconnected()));
+    QObject::connect(user->socketHandler, SIGNAL(disconnected(SocketHandler*)), this, SLOT(onUserDisconnected(SocketHandler*)));
     //add user to array
     users.push_back(user);
 }
@@ -96,11 +96,27 @@ void TcpServer::getUserId(QString login)
 User &TcpServer::getUserBySocketHandler(SocketHandler *socketHandler)
 {
     unsigned int i;
-    for (i = 0 ; &users[i]->socketHandler != socketHandler ; i++);
+    for (i = 0 ; users[i]->socketHandler != socketHandler ; i++);
     return *users[i];
 }
 
-void TcpServer::onTextRequested(Request &data, SocketHandler *socketHandler)
+//RESPONSE TO REQUESTS
+
+void TcpServer::onLoginAuthRequest(Request &req, SocketHandler *socketHandler)
 {
-    qDebug() << "Text request: " << data.data << "\nId: " << getUserBySocketHandler(socketHandler).userId;
+    User& user = getUserBySocketHandler(socketHandler);
+
+    //extract login credetials
+    QString login, password;
+    QDataStream in(&req.data, QIODevice::ReadOnly);
+    in >> login >> password;
+
+    //send response to client
+    QByteArray resp;
+    QDataStream out(&resp, QIODevice::WriteOnly);
+    //whether login credentials are valid
+    out << bool(true);
+    //whether user is an admin
+    out << user.isAdmin;
+    socketHandler->send(Request(req.name, resp));
 }

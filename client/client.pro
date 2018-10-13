@@ -27,15 +27,23 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    loginwidget.cpp
+    loginwidget.cpp \
+    requests.cpp \
+    sockethandler.cpp \
+    mainwidget.cpp
 
 HEADERS += \
         mainwindow.h \
-    loginwidget.h
+    loginwidget.h \
+    requestreceiver.h \
+    requests.h \
+    sockethandler.h \
+    mainwidget.h
 
 FORMS += \
         mainwindow.ui \
-    loginwidget.ui
+    loginwidget.ui \
+    mainwidget.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

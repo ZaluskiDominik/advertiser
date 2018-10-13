@@ -25,7 +25,10 @@ private slots:
 
 protected:
     //overriden virtual function that receive request and invokes appropriate function handling that request
-    void onDataReceived(Request request, SocketHandler* sender);
+    void onDataReceived(Request request, SocketHandler* sender) final;
+
+    //register all available requests(listed in requests.h) in socketHandler
+    void registerRequestsReceiver(SocketHandler* socketHandler) final;
 
 private:
     int port;
@@ -48,21 +51,23 @@ private:
     //new connection has been made
     void incomingConnection(qintptr sockedId);
 
-    //register all available requests(listed in requests.h) in socketHandler
-    void registerRequestsReceiver(SocketHandler* socketHandler);
-
     //LIST OF REQUESTS HANDLERS(callbacks to ready read event)
-    void onTextRequested(Request& data, SocketHandler* socketHandler);
+    void onLoginAuthRequest(Request& req, SocketHandler* socketHandler);
 };
 
 struct User
 {
     User(qintptr socketId)
-        :socketHandler(socketId)
+        :socketHandler(new SocketHandler(socketId))
     {
     }
+    ~User()
+    {
+        socketHandler->deleteLater();
+    }
+
     //user's socket wrapper
-    SocketHandler socketHandler;
+    SocketHandler* socketHandler;
     //user's id will be pulled later from database after he logs in
     int userId = -1;
     //whether this user is an admin
