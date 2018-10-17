@@ -30,7 +30,11 @@ SOURCES += \
     loginwidget.cpp \
     requests.cpp \
     sockethandler.cpp \
-    mainwidget.cpp
+    mainwidget.cpp \
+    requestreceiver.cpp \
+    userdata.cpp \
+    profiledialog.cpp \
+    mainmenu.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -38,12 +42,16 @@ HEADERS += \
     requestreceiver.h \
     requests.h \
     sockethandler.h \
-    mainwidget.h
+    mainwidget.h \
+    userdata.h \
+    profiledialog.h \
+    mainmenu.h
 
 FORMS += \
         mainwindow.ui \
     loginwidget.ui \
-    mainwidget.ui
+    mainwidget.ui \
+    profiledialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

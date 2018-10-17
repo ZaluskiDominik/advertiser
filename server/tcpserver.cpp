@@ -1,5 +1,6 @@
 #include "tcpserver.h"
 #include <QtDebug>
+#include "dbmanager.h"
 
 TcpServer::TcpServer(int _port, QObject* parent)
     :QTcpServer(parent)
@@ -79,6 +80,9 @@ void TcpServer::incomingConnection(qintptr sockedId)
 
 void TcpServer::registerRequestsReceiver(SocketHandler *socketHandler)
 {
+    //call parent's implementation of this function
+    RequestReceiver::registerRequestsReceiver(socketHandler);
+
     //receive all request listed in requests.h
     std::vector<Request::RequestName> requestsNames;
     for (int i = 0 ; i < Request::Count ; i++)
@@ -86,11 +90,6 @@ void TcpServer::registerRequestsReceiver(SocketHandler *socketHandler)
 
     //register that requests in socketHandler
     socketHandler->addRequestReceiver(requestsNames, *this);
-}
-
-void TcpServer::getUserId(QString login)
-{
-    Q_UNUSED(login);
 }
 
 User &TcpServer::getUserBySocketHandler(SocketHandler *socketHandler)
@@ -111,12 +110,40 @@ void TcpServer::onLoginAuthRequest(Request &req, SocketHandler *socketHandler)
     QDataStream in(&req.data, QIODevice::ReadOnly);
     in >> login >> password;
 
+    //check in database if user with that credentials exists
+    DBManager db;
+    QSqlQuery* query = db.prepare(QString("SELECT * FROM admins AS a, users AS u LEFT JOIN ") +
+    "users ON a.user_id = u.id WHERE u.login = ? AND u.password = ?");
+    query->addBindValue(login);
+    query->addBindValue(password);
+    query->exec();
+
+    bool isAuth = false;
+    UserData userData;
+    //if no errors occured and number of row is 1 the login was successfull
+    if ( query->isActive() && db.rowCount(query) == 1 )
+    {
+        //authorization passed
+        isAuth = true;
+        query->first();
+        //create container for user data which will be send to client
+        userData = UserData(query);
+        user.isAdmin = userData.isAdmin;
+    }
+
     //send response to client
+    sendLoginAuthResponse(socketHandler, userData, isAuth);
+}
+
+void TcpServer::sendLoginAuthResponse(SocketHandler* socketHandler, UserData& userData, bool isAuth)
+{
     QByteArray resp;
     QDataStream out(&resp, QIODevice::WriteOnly);
+
     //whether login credentials are valid
-    out << bool(true);
-    //whether user is an admin
-    out << user.isAdmin;
-    socketHandler->send(Request(req.name, resp));
+    out << isAuth;
+    //container for user data
+    out << userData;
+
+    socketHandler->send(Request(Request::LOGIN_AUTH, resp));
 }

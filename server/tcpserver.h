@@ -6,6 +6,7 @@
 #include "sockethandler.h"
 #include "requests.h"
 #include "requestreceiver.h"
+#include "userdata.h"
 
 struct User;
 
@@ -42,9 +43,6 @@ private:
     //list all functions in responsesToRequests array that will handle each request from client
     void initResponsesToRequests();
 
-    //returns user's id from database
-    void getUserId(QString login);
-
     //returns instance of User class that owns given socketHandler
     User& getUserBySocketHandler(SocketHandler* socketHandler);
 
@@ -52,7 +50,11 @@ private:
     void incomingConnection(qintptr sockedId);
 
     //LIST OF REQUESTS HANDLERS(callbacks to ready read event)
+
+    //client has requested login credentials authentication
     void onLoginAuthRequest(Request& req, SocketHandler* socketHandler);
+    //send response if login was successfull
+    void sendLoginAuthResponse(SocketHandler *socketHandler, UserData &userData, bool isAuth);
 };
 
 struct User

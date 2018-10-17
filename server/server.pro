@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
+QT       += core gui network sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -29,14 +29,19 @@ SOURCES += \
         dialog.cpp \
     requests.cpp \
     tcpserver.cpp \
-    sockethandler.cpp
+    sockethandler.cpp \
+    dbmanager.cpp \
+    requestreceiver.cpp \
+    userdata.cpp
 
 HEADERS += \
         dialog.h \
     sockethandler.h \
     requests.h \
     tcpserver.h \
-    requestreceiver.h
+    requestreceiver.h \
+    dbmanager.h \
+    userdata.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -5,6 +5,8 @@
 #include <ui_mainwindow.h>
 #include "loginwidget.h"
 #include "mainwidget.h"
+#include "profiledialog.h"
+#include "mainmenu.h"
 
 class MainWindow : public QMainWindow
 {
@@ -15,6 +17,7 @@ public:
 
 private:
     Ui::MainWindow ui;
+    MainMenu* mainMenu;
 
     //widget displaying login form
     LoginWidget loginWidget;
@@ -23,13 +26,27 @@ private:
 
     //action for toolbar's logout button
     QAction* logoutAction;
+    //label with user's login
+    QLabel* loginLabel;
+    //action for opening menu for editing profile
+    QAction* profileToolAction;
 
     //initialize stacked widget with login and main views
     void initStackedWidget();
 
+    //create main menu, connects menu options signals to slots
+    void initMenu();
+
+    //TOOLBAR
+    void initToolBarActions();
     //makes main toolbar's items right aligned
     void initToolbarItemsRightAlignment();
-
+    //adds label with loged in user's login
+    void addLoginLabel();
+    //adds appropriate label if user is an admin
+    void addAdminLabel();
+    //adds label with profile image
+    void addProfileLabel();
     //adds logout button to main toolbar
     void addLogoutBtn();
 
@@ -42,6 +59,9 @@ private slots:
 
     //user clicked logout buton
     void onLogout();
+
+    //profile action was triggered
+    void onProfileClicked();
 };
 
 #endif // MAINWINDOW_H

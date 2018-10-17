@@ -23,22 +23,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>872</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuCennik">
-    <property name="title">
-     <string>Cennik</string>
-    </property>
-   </widget>
-   <addaction name="menuCennik"/>
-  </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -47,6 +31,11 @@
     <bool>false</bool>
    </attribute>
   </widget>
+  <action name="actionCennik">
+   <property name="text">
+    <string>Cennik</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

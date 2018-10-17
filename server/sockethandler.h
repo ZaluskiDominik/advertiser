@@ -14,8 +14,12 @@ class SocketHandler : public QObject
 {
     Q_OBJECT
 public:
+    //client socket constuctor
     explicit SocketHandler(QObject *parent = nullptr);
+    //server socket constructor
     explicit SocketHandler(qintptr socketId, QObject *parent = nullptr);
+    //removes all pointers to RequestReceiver instaces that were registered to receive requests from this socket handler
+    ~SocketHandler();
 
     //connects to host, returns true if connection was made
     bool connectToHost(QString host, quint16 port, int msWaitTime);
@@ -29,6 +33,10 @@ public:
     //adds request receiver to requestReceivers array
     //instance of descendant from RequestReceiver will receive data from listed requests
     void addRequestReceiver(std::vector<Request::RequestName> requestsNames, RequestReceiver &receiver);
+
+    //removes RequestReceiver instance from requestsReceivers array of lists
+    //that instance won't get futher any request from this socket handler
+    void removeRequestReceiver(RequestReceiver &receiver);
 
 private:
     QTcpSocket socket;

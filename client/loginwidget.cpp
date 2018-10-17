@@ -1,25 +1,29 @@
 #include "loginwidget.h"
 #include "sockethandler.h"
+#include "userdata.h"
 #include <QMessageBox>
 
 extern SocketHandler socketHandler;
-extern bool isAdmin;
+extern UserData user;
 
 LoginWidget::LoginWidget(QWidget *parent) :
     QWidget(parent)
 {
     ui.setupUi(this);
     registerRequestsReceiver(&socketHandler);
+
+    ui.loginErr->hide();
 }
 
 void LoginWidget::onDataReceived(Request req, SocketHandler *)
 {
-    if (req.name == Request::LOGIN_AUTH)
-        onLoginAuthResponse(req);
+    onLoginAuthResponse(req);
 }
 
 void LoginWidget::registerRequestsReceiver(SocketHandler *socketHandler)
 {
+    RequestReceiver::registerRequestsReceiver(socketHandler);
+
     std::vector<Request::RequestName> names({ Request::LOGIN_AUTH });
     socketHandler->addRequestReceiver(names, *this);
 }
@@ -60,23 +64,23 @@ void LoginWidget::onLoginAuthResponse(Request& req)
 {
     QDataStream stream(&req.data, QIODevice::ReadOnly);
     bool isAuth;
-    //whether credentials were valid
     stream >> isAuth;
-    //whether this user is an admin
-    stream >> isAdmin;
 
     //if login process was succesfull
     if (isAuth)
     {
+        stream >> user;
         //clear login inputs
         ui.login->clear();
         ui.password->clear();
+        //hide login error message
+        ui.loginErr->hide();
         //emit signal to main window class
         emit userLoggedIn();
     }
     else
     {
-        //login or password wasn't found
-
+        //login or password wasn't found, show error message
+        ui.loginErr->show();
     }
 }

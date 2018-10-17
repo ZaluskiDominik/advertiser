@@ -3,5 +3,6 @@
         <file>img/login_button.png</file>
         <file>img/login_monitor.png</file>
         <file>img/logout.png</file>
+        <file>img/profile.png</file>
     </qresource>
 </RCC>

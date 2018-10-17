@@ -21,6 +21,15 @@ SocketHandler::SocketHandler(qintptr socketId, QObject *parent)
     init();
 }
 
+SocketHandler::~SocketHandler()
+{
+    for (auto i = requestsReceivers.begin() ; i != requestsReceivers.end() ; i++)
+    {
+        for (auto j = i->begin() ; j != i->end() ; j++)
+            (*j)->registeredSockets.remove(this);
+    }
+}
+
 bool SocketHandler::connectToHost(QString host, quint16 port, int msWaitTime)
 {
     socket.connectToHost(host, port);
@@ -69,6 +78,12 @@ void SocketHandler::addRequestReceiver(std::vector<Request::RequestName> request
             requestsReceivers[*i].push_back(&receiver);
         }
     }
+}
+
+void SocketHandler::removeRequestReceiver(RequestReceiver &receiver)
+{
+    for (auto i = requestsReceivers.begin() ; i != requestsReceivers.end() ; i++)
+        i->remove(&receiver);
 }
 
 void SocketHandler::wholeMsgComposed(Request& request)
