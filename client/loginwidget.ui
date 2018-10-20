@@ -33,7 +33,7 @@
      </property>
     </spacer>
    </item>
-   <item alignment="Qt::AlignVCenter">
+   <item>
     <widget class="QLabel" name="label_3">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -281,6 +281,12 @@
       </item>
       <item>
        <widget class="QLabel" name="loginErr">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>18</height>
+         </size>
+        </property>
         <property name="font">
          <font>
           <pointsize>11</pointsize>
@@ -292,7 +298,7 @@
          <string notr="true">color: red;</string>
         </property>
         <property name="text">
-         <string>Nieprawidłowy login lub hasło!</string>
+         <string/>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>

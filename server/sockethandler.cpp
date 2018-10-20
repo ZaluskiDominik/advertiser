@@ -86,6 +86,16 @@ void SocketHandler::removeRequestReceiver(RequestReceiver &receiver)
         i->remove(&receiver);
 }
 
+void SocketHandler::composeRequest(QByteArray &bytes)
+{
+    QDataStream stream(&bytes, QIODevice::ReadOnly);
+    //retrieve Request object
+    Request req;
+    stream >> req;
+    //proceed request
+    wholeMsgComposed(req);
+}
+
 void SocketHandler::wholeMsgComposed(Request& request)
 {
     //if request is recognized
@@ -118,24 +128,35 @@ void SocketHandler::onReadyRead()
 {
     //append read bytes to buffer which compose all message's chunks after each ready read occurs
     msgBuffer.append( socket.readAll() );
-    //initialize serialization object
-    QDataStream msgStream(&msgBuffer, QIODevice::ReadOnly);
 
-    //get info about expected whole message's size
-    quint32 msgSize;
-    msgStream >> msgSize;
-
-    //if all message's chunks were received
-    if ( msgSize == static_cast<quint32>(msgBuffer.size()) )
+    //read each request
+    while (msgBuffer.size())
     {
-        //retrieve Request object
-        Request req;
-        msgStream >> req;
-        //proceed data
-        wholeMsgComposed(req);
+        //initialize serialization object
+        QDataStream msgStream(&msgBuffer, QIODevice::ReadOnly);
 
-        //clear buffer to next request
-        msgBuffer.clear();
+        //get info about expected whole message's size
+        quint32 msgSize;
+        msgStream >> msgSize;
+
+        //if size couldn't be read, dont't react to request
+        if ( msgStream.status() == QDataStream::ReadCorruptData )
+        {
+            msgBuffer.clear();
+            return;
+        }
+
+        //if all request's chunks were sent
+        if ( static_cast<quint32>(msgBuffer.size()) >= msgSize )
+        {
+            //read bytes of one request
+            QByteArray reqBytes = msgBuffer.mid(4, static_cast<int>(msgSize));
+            //compose request object from those bytes and remove them from msgBuffer
+            composeRequest(reqBytes);
+            msgBuffer.remove(0, static_cast<int>(msgSize) + 4);
+        }
+        else
+            break;
     }
 }
 

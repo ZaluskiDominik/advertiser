@@ -9,6 +9,13 @@ class Request
 {
     friend QDataStream& operator>>(QDataStream& stream, Request& req);
 public:
+    //status of request
+    enum RequestStatus
+    {
+        OK,
+        ERROR
+    };
+
     //list of available requests
     enum RequestName
     {
@@ -22,10 +29,20 @@ public:
 
     //what request is this
     RequestName name;
+    RequestStatus status;
     //content of request/response
     QByteArray data;
 
+    //overloaded constructors
     Request() = default;
+    Request(const RequestName& _name, const QByteArray& _data, const RequestStatus& _status)
+        :name(_name), status(_status), data(_data)
+    {
+    }
+    Request(const RequestName& _name, const RequestStatus& _status)
+        :name(_name), status(_status)
+    {
+    }
     Request(const RequestName& _name, const QByteArray& _data)
         :name(_name), data(_data)
     {

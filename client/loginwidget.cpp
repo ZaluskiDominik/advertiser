@@ -11,8 +11,6 @@ LoginWidget::LoginWidget(QWidget *parent) :
 {
     ui.setupUi(this);
     registerRequestsReceiver(&socketHandler);
-
-    ui.loginErr->hide();
 }
 
 void LoginWidget::onDataReceived(Request req, SocketHandler *)
@@ -62,6 +60,13 @@ void LoginWidget::sendLoginAuthRequest()
 
 void LoginWidget::onLoginAuthResponse(Request& req)
 {
+    //if an error occured
+    if (req.status == Request::ERROR)
+    {
+        QMessageBox::warning(this, "Błąd", "Wystąpił nieznany błąd podczas uwierzytelniania!");
+        return;
+    }
+
     QDataStream stream(&req.data, QIODevice::ReadOnly);
     bool isAuth;
     stream >> isAuth;
@@ -73,14 +78,14 @@ void LoginWidget::onLoginAuthResponse(Request& req)
         //clear login inputs
         ui.login->clear();
         ui.password->clear();
-        //hide login error message
-        ui.loginErr->hide();
+        //clear login error message
+        ui.loginErr->setText("");
         //emit signal to main window class
         emit userLoggedIn();
     }
     else
     {
         //login or password wasn't found, show error message
-        ui.loginErr->show();
+        ui.loginErr->setText("Nieprawidłowy login lub hasło!");
     }
 }

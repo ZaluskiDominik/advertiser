@@ -46,7 +46,7 @@ void MainWindow::initMenu()
 
     //connect to menu options' signals
     QObject::connect(mainMenu, SIGNAL(profileClicked()), this, SLOT(onProfileClicked()));
-    QObject::connect(mainMenu, SIGNAL(onAdminPanelClicked()), this, SLOT(onAdminPanelClicked()));
+    QObject::connect(mainMenu, SIGNAL(adminPanelClicked()), this, SLOT(onAdminPanelClicked()));
 }
 
 void MainWindow::initToolBarActions()

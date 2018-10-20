@@ -51,6 +51,9 @@ private:
     //request code is equal to array's index
     std::vector< std::list<RequestReceiver*> > requestsReceivers;
 
+    //composes request from sent chunks
+    void composeRequest(QByteArray& bytes);
+
     //invokes appropriate callback depending from what request's name is
     void wholeMsgComposed(Request &request);
 

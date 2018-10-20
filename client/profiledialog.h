@@ -12,7 +12,6 @@ class ProfileDialog : public QDialog, public RequestReceiver
 
 public:
     explicit ProfileDialog(UserData& userData, QWidget *parent = nullptr);
-    ~ProfileDialog();
 
 private slots:
     //ok button clicked
@@ -24,15 +23,16 @@ private slots:
     void onInput();
 
 protected:
+    //display message before closing dialog if there are unsaved changes
     void closeEvent(QCloseEvent* e);
 
-    virtual void onDataReceived(Request req, SocketHandler* sender);
-    virtual void registerRequestsReceiver(SocketHandler* socketHandler);
+    virtual void onDataReceived(Request req, SocketHandler*) final;
+    virtual void registerRequestsReceiver(SocketHandler* socketHandler) final;
 
 private:
     Ui::ProfileDialog ui;
 
-    //user data that was supplied in constructor, and will be changed after apply
+    //user data that was supplied in constructor, and will be changed after apply button click
     UserData& editedUser;
 
     //set text to each line edit with user's data

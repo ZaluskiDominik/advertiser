@@ -7,6 +7,7 @@
 #include "mainwidget.h"
 #include "profiledialog.h"
 #include "mainmenu.h"
+#include "admindialog.h"
 
 class MainWindow : public QMainWindow
 {
@@ -23,6 +24,11 @@ private:
     LoginWidget loginWidget;
     //widget displaying main application panel
     MainWidget mainWidget;
+
+    //dialog for editing user's data
+    ProfileDialog* profileDialog;
+    //admin's main panel
+    AdminDialog* adminDialog;
 
     //action for toolbar's logout button
     QAction* logoutAction;
@@ -54,17 +60,23 @@ private:
     void addLogoutBtn();
 
 private slots:
+    //connection with server was lost
+    void onDisconnectFromServer();
+
     //widget displayed in stacked widget was changed
     void onStackedWidgetChanged(int index);
 
     //user gave valid login credentials during login process
     void onUserLoggedIn();
 
-    //user clicked logout buton
+    //user clicked logout button
     void onLogout();
 
     //profile action was triggered
     void onProfileClicked();
+
+    //admin panel menu was clicked
+    void onAdminPanelClicked();
 };
 
 #endif // MAINWINDOW_H

@@ -56,10 +56,13 @@ private:
     //send response if login was successfull
     void sendLoginAuthResponse(SocketHandler *socketHandler, const UserData &userData, bool isAuth);
 
-    //client wants to change his data, save it
+    //client wants to change his data, save changes in db
     void onChangeUserDataRequest(Request& req, SocketHandler* socketHandler);
+    //saves changes in user's data in db
+    bool saveUserData(const UserData& userData, SocketHandler *socketHandler);
 };
 
+//container for strorig user's socketHandler and id
 struct User
 {
     User(qintptr socketId)

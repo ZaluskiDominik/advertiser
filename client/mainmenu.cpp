@@ -8,6 +8,11 @@ MainMenu::MainMenu(QWidget* parent)
     initMenuOptions();
 }
 
+void MainMenu::showAdminPanelMenu(bool show)
+{
+    openAdminPanelBtn->setVisible(show);
+}
+
 void MainMenu::initLayout()
 {
     layout = new QHBoxLayout;
@@ -28,6 +33,9 @@ void MainMenu::initMenuOptions()
     addMenuOption(&openProfileBtn, "Profil");
     QObject::connect(openProfileBtn, SIGNAL(clicked()), this, SIGNAL(profileClicked()));
 
+    addMenuOption(&openAdminPanelBtn, "Panel admina");
+    QObject::connect(openAdminPanelBtn, SIGNAL(clicked()), this, SIGNAL(adminPanelClicked()));
+
     QWidget* spaceFiller = new QWidget;
     spaceFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     layout->addWidget(spaceFiller);
@@ -47,9 +55,4 @@ void MainMenu::addMenuOption(QPushButton** menuOption, QString title)
     (*menuOption)->show();
     layout->addWidget(*menuOption);
     layout->setAlignment(*menuOption, Qt::AlignLeft);
-}
-
-void MainMenu::onPriceListBtnClicked()
-{
-    emit priceListClicked();
 }

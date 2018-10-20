@@ -99,9 +99,7 @@ border-right: none;</string>
           </size>
          </property>
          <property name="font">
-          <font>
-           <pointsize>-1</pointsize>
-          </font>
+          <font/>
          </property>
          <property name="styleSheet">
           <string notr="true"/>
@@ -196,9 +194,7 @@ border-right: none;</string>
           </size>
          </property>
          <property name="font">
-          <font>
-           <pointsize>-1</pointsize>
-          </font>
+          <font/>
          </property>
          <property name="styleSheet">
           <string notr="true"/>
@@ -293,9 +289,7 @@ border-right: none;</string>
           </size>
          </property>
          <property name="font">
-          <font>
-           <pointsize>-1</pointsize>
-          </font>
+          <font/>
          </property>
          <property name="maxLength">
           <number>30</number>
@@ -384,9 +378,7 @@ border-right: none;</string>
           </size>
          </property>
          <property name="font">
-          <font>
-           <pointsize>-1</pointsize>
-          </font>
+          <font/>
          </property>
          <property name="maxLength">
           <number>30</number>
@@ -475,9 +467,7 @@ border-right: none;</string>
           </size>
          </property>
          <property name="font">
-          <font>
-           <pointsize>-1</pointsize>
-          </font>
+          <font/>
          </property>
          <property name="maxLength">
           <number>30</number>
@@ -566,9 +556,7 @@ border-right: none;</string>
           </size>
          </property>
          <property name="font">
-          <font>
-           <pointsize>-1</pointsize>
-          </font>
+          <font/>
          </property>
          <property name="maxLength">
           <number>30</number>
@@ -657,9 +645,7 @@ border-right: none;</string>
           </size>
          </property>
          <property name="font">
-          <font>
-           <pointsize>-1</pointsize>
-          </font>
+          <font/>
          </property>
          <property name="maxLength">
           <number>30</number>
@@ -737,7 +723,6 @@ border-right: none;</string>
          </property>
          <property name="font">
           <font>
-           <pointsize>-1</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -752,6 +737,9 @@ border-right: none;</string>
        </item>
        <item>
         <widget class="QPushButton" name="applyBtn">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -766,7 +754,6 @@ border-right: none;</string>
          </property>
          <property name="font">
           <font>
-           <pointsize>-1</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>

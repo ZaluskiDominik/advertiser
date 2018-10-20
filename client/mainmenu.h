@@ -10,12 +10,16 @@ class MainMenu : public QWidget
 public:
     explicit MainMenu(QWidget* parent = nullptr);
 
+    //shows or hides admin panel menu
+    void showAdminPanelMenu(bool show = true);
+
 private:
     class MenuOption;
     //main menu options
     QPushButton* openPriceListBtn;
     QPushButton* openAdsEditorBtn;
     QPushButton* openProfileBtn;
+    QPushButton* openAdminPanelBtn;
 
     QHBoxLayout* layout;
 
@@ -32,9 +36,7 @@ signals:
     void priceListClicked();
     void adsEditorClicked();
     void profileClicked();
-
-private slots:
-    void onPriceListBtnClicked();
+    void adminPanelClicked();
 };
 
 #endif // MAINMENU_H
