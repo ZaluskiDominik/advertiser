@@ -8,5 +8,5 @@ RequestReceiver::~RequestReceiver()
 
 void RequestReceiver::registerRequestsReceiver(SocketHandler *socketHandler)
 {
-        registeredSockets.push_back(socketHandler);
+    registeredSockets.push_back(socketHandler);
 }

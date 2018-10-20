@@ -54,7 +54,10 @@ private:
     //client has requested login credentials authentication
     void onLoginAuthRequest(Request& req, SocketHandler* socketHandler);
     //send response if login was successfull
-    void sendLoginAuthResponse(SocketHandler *socketHandler, UserData &userData, bool isAuth);
+    void sendLoginAuthResponse(SocketHandler *socketHandler, const UserData &userData, bool isAuth);
+
+    //client wants to change his data, save it
+    void onChangeUserDataRequest(Request& req, SocketHandler* socketHandler);
 };
 
 struct User

@@ -14,7 +14,7 @@ public:
     {
         //login authentication
         LOGIN_AUTH,
-        GET_USER_DATA,
+        CHANGE_USER_DATA,
 
         //element used to retrieve number of requests, it's not a request!
         Count

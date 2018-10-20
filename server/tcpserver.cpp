@@ -50,7 +50,8 @@ void TcpServer::onDataReceived(Request request, SocketHandler *sender)
 void TcpServer::initResponsesToRequests()
 {
     responsesToRequests = std::vector< void (TcpServer::*)(Request&, SocketHandler*) >({
-        &TcpServer::onLoginAuthRequest
+        &TcpServer::onLoginAuthRequest,
+        &TcpServer::onChangeUserDataRequest
     });
 }
 
@@ -112,8 +113,12 @@ void TcpServer::onLoginAuthRequest(Request &req, SocketHandler *socketHandler)
 
     //check in database if user with that credentials exists
     DBManager db;
-    QSqlQuery* query = db.prepare(QString("SELECT * FROM admins AS a, users AS u LEFT JOIN ") +
-    "users ON a.user_id = u.id WHERE u.login = ? AND u.password = ?");
+
+    if ( !db.isOpen() )
+        return;
+
+    QSqlQuery* query = db.prepare(QString("SELECT * FROM users LEFT JOIN ") +
+    "admins ON admins.user_id = users.id WHERE users.login = ? AND users.password = ?");
     query->addBindValue(login);
     query->addBindValue(password);
     query->exec();
@@ -135,7 +140,7 @@ void TcpServer::onLoginAuthRequest(Request &req, SocketHandler *socketHandler)
     sendLoginAuthResponse(socketHandler, userData, isAuth);
 }
 
-void TcpServer::sendLoginAuthResponse(SocketHandler* socketHandler, UserData& userData, bool isAuth)
+void TcpServer::sendLoginAuthResponse(SocketHandler* socketHandler, const UserData &userData, bool isAuth)
 {
     QByteArray resp;
     QDataStream out(&resp, QIODevice::WriteOnly);
@@ -146,4 +151,40 @@ void TcpServer::sendLoginAuthResponse(SocketHandler* socketHandler, UserData& us
     out << userData;
 
     socketHandler->send(Request(Request::LOGIN_AUTH, resp));
+}
+
+void TcpServer::onChangeUserDataRequest(Request& req, SocketHandler* socketHandler)
+{
+    User& user = getUserBySocketHandler(socketHandler);
+
+    if (user.socketHandler == socketHandler || user.isAdmin)
+    {
+        QDataStream stream(&req.data, QIODevice::ReadOnly);
+        UserData userData;
+        stream >> userData;
+        DBManager db;
+
+        if ( !db.isOpen() )
+            return;
+
+        QSqlQuery* query = db.prepare(QString("UPDATE users SET name = ?, surname = ?, company_name = ?") +
+            ", phone = ?, email = ? WHERE id = ?");
+        query->addBindValue(userData.name);
+        query->addBindValue(userData.surname);
+        query->addBindValue(userData.companyName);
+        query->addBindValue(userData.phone);
+        query->addBindValue(userData.email);
+        query->addBindValue(userData.id);
+        query->exec();
+        qDebug() << "received";
+
+        if (query->isActive())
+        {
+            qDebug() << "good";
+            QByteArray outBuffer;
+            QDataStream out(&outBuffer, QIODevice::WriteOnly);
+            out << userData;
+            socketHandler->send(Request(req.name, outBuffer));
+        }
+    }
 }

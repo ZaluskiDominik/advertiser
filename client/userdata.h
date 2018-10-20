@@ -6,7 +6,7 @@
 class UserData
 {
 public:
-    int id;
+    quint32 id;
     QString login;
     QString name;
     QString surname;
@@ -14,10 +14,9 @@ public:
     QString phone;
     QString email;
     bool isAdmin;
-
-    operator QByteArray() const;
 };
 
 QDataStream& operator>>(QDataStream &stream, UserData &user);
+QDataStream& operator<<(QDataStream &stream, const UserData &user);
 
 #endif // USERDATA_H

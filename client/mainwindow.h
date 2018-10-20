@@ -27,7 +27,10 @@ private:
     //action for toolbar's logout button
     QAction* logoutAction;
     //label with user's login
+    QAction* loginLabelAction;
     QLabel* loginLabel;
+    //label informing s user is an admin
+    QAction* adminLabelAction;
     //action for opening menu for editing profile
     QAction* profileToolAction;
 

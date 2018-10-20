@@ -3,6 +3,7 @@
 #include <QDebug>
 #include "sockethandler.h"
 #include "userdata.h"
+#include <QGraphicsDropShadowEffect>
 
 //global socketHandler to which all client request are registered
 SocketHandler socketHandler;
@@ -44,6 +45,7 @@ void MainWindow::initMenu()
 void MainWindow::initToolBarActions()
 {
     initToolbarItemsRightAlignment();
+    addAdminLabel();
     addLoginLabel();
     addProfileLabel();
     addLogoutBtn();
@@ -59,12 +61,19 @@ void MainWindow::initToolbarItemsRightAlignment()
 void MainWindow::addLoginLabel()
 {
     loginLabel = new QLabel;
-    ui.mainToolBar->addWidget(loginLabel);
-    loginLabel->setText(user.login);
+    loginLabelAction = ui.mainToolBar->addWidget(loginLabel);
 }
 
 void MainWindow::addAdminLabel()
 {
+    QLabel* adminLabel = new QLabel("Admin");
+    adminLabelAction = ui.mainToolBar->addWidget(adminLabel);
+    QGraphicsDropShadowEffect* shadow = new QGraphicsDropShadowEffect(adminLabel);
+    shadow->setOffset(2, 2);
+    shadow->setBlurRadius(3);
+    shadow->setColor(Qt::gray);
+    adminLabel->setStyleSheet("color: red; font-weight: bold; font-size: 18px;");
+    adminLabel->setGraphicsEffect(shadow);
 }
 
 void MainWindow::addProfileLabel()
@@ -111,6 +120,12 @@ void MainWindow::onUserLoggedIn()
 {
     //change view to main widget
     ui.stackedWidget->setCurrentWidget(&mainWidget);
+
+    //if user is an admin show label informing about that, else show user's login
+    adminLabelAction->setVisible(user.isAdmin);
+    loginLabelAction->setVisible(!user.isAdmin);
+    if (!user.isAdmin)
+        loginLabel->setText(user.login);
 }
 
 void MainWindow::onLogout()
