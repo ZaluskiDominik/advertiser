@@ -46,7 +46,7 @@ void MainWindow::initMenu()
 
     //connect to menu options' signals
     QObject::connect(mainMenu, SIGNAL(profileClicked()), this, SLOT(onProfileClicked()));
-    QObject::connect(mainMenu, SIGNAL(onAdminPanelClicked()), this, SLOT(onAdminPanelClicked()));
+    QObject::connect(mainMenu, SIGNAL(adminPanelClicked()), this, SLOT(onAdminPanelClicked()));
 }
 
 void MainWindow::initToolBarActions()
@@ -106,9 +106,12 @@ void MainWindow::addLogoutBtn()
 
 void MainWindow::onDisconnectFromServer()
 {
-    QMessageBox::warning(this, "Stracono połączenie z serwerem", "Utracono połączenie z serwerem. Zostaniesz wylogowany...");
-    //change screen to login form view
-    onLogout();
+    if ( ui.stackedWidget->currentWidget() != &loginWidget )
+    {
+        QMessageBox::warning(this, "Stracono połączenie z serwerem", "Utracono połączenie z serwerem. Zostaniesz wylogowany...");
+        //change screen to login form view
+        onLogout();
+    }
 }
 
 void MainWindow::onStackedWidgetChanged(int index)
@@ -145,7 +148,7 @@ void MainWindow::onUserLoggedIn()
     mainMenu->showAdminPanelMenu(user.isAdmin);
 
     //if user isn't an admin, set loginLabel's text to user's login
-    if (user.isAdmin)
+    if (!user.isAdmin)
         loginLabel->setText(user.login);
 }
 
@@ -156,12 +159,13 @@ void MainWindow::onLogout()
 
 void MainWindow::onProfileClicked()
 {
-    profileDialog = new ProfileDialog(user);
+    profileDialog = new ProfileDialog(user, this);
     profileDialog->show();
 }
 
 void MainWindow::onAdminPanelClicked()
 {
-    adminDialog = new AdminDialog;
+    adminDialog = new AdminDialog(this);
+    adminDialog->setAttribute(Qt::WA_DeleteOnClose);
     adminDialog->show();
 }

@@ -5,7 +5,6 @@ AdminDialog::AdminDialog(QWidget *parent)
 {
     ui.setupUi(this);
     initStackedWidget();
-    initTabSwitching();
 }
 
 AdminDialog::~AdminDialog()
@@ -21,13 +20,7 @@ void AdminDialog::initStackedWidget()
     ui.stackedWidget->setCurrentWidget(&usersWidget);
 }
 
-void AdminDialog::initTabSwitching()
+void AdminDialog::on_usersBtn_clicked()
 {
-    QObject::connect(ui.usersBtn, SIGNAL(clicked()), this, SLOT(onTabBtnClicked()));
-}
-
-void AdminDialog::onTabBtnClicked()
-{
-    QWidget* widget = qobject_cast<QWidget*>(sender());
-    ui.stackedWidget->setCurrentWidget(widget);
+    ui.stackedWidget->setCurrentWidget(&usersWidget);
 }

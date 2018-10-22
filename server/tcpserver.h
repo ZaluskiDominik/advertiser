@@ -50,6 +50,7 @@ private:
     void incomingConnection(qintptr sockedId);
 
     //LIST OF REQUESTS HANDLERS(callbacks to ready read event)
+    //****************************************************************************
 
     //client has requested login credentials authentication
     void onLoginAuthRequest(Request& req, SocketHandler* socketHandler);
@@ -60,6 +61,12 @@ private:
     void onChangeUserDataRequest(Request& req, SocketHandler* socketHandler);
     //saves changes in user's data in db
     bool saveUserData(const UserData& userData, SocketHandler *socketHandler);
+
+    //client request data of all users excluding admins
+    void onGetAllUsersData(Request& req, SocketHandler* socketHandler);
+
+    //client wants to remove a user from db
+    void onDeleteUserRequest(Request& req, SocketHandler* socketHandler);
 };
 
 //container for strorig user's socketHandler and id

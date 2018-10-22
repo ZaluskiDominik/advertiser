@@ -1,5 +1,6 @@
 #include "tcpserver.h"
 #include <QtDebug>
+#include <QVector>
 #include "dbmanager.h"
 
 TcpServer::TcpServer(int _port, QObject* parent)
@@ -49,10 +50,13 @@ void TcpServer::onDataReceived(Request request, SocketHandler *sender)
 
 void TcpServer::initResponsesToRequests()
 {
-    responsesToRequests = std::vector< void (TcpServer::*)(Request&, SocketHandler*) >({
+    //list all callbacks in the same order as requests in requests.h are listed
+    responsesToRequests = std::vector< void (TcpServer::*)(Request&, SocketHandler*) >{
         &TcpServer::onLoginAuthRequest,
-        &TcpServer::onChangeUserDataRequest
-    });
+        &TcpServer::onChangeUserDataRequest,
+        &TcpServer::onGetAllUsersData,
+        &TcpServer::onDeleteUserRequest
+    };
 }
 
 void TcpServer::incomingConnection(qintptr sockedId)
@@ -209,4 +213,59 @@ bool TcpServer::saveUserData(const UserData &userData, SocketHandler* socketHand
     query->exec();
 
     return query->isActive();
+}
+
+void TcpServer::onGetAllUsersData(Request &req, SocketHandler *socketHandler)
+{
+    DBManager db;
+
+    //if db isn't open send error response
+    if ( !db.isOpen() )
+    {
+        socketHandler->send( Request(req.name, Request::ERROR) );
+        return;
+    }
+
+    //get all records of users excluding admins
+    QSqlQuery* query = db.query(QString("SELECT users.* FROM users LEFT JOIN admins ") +
+        "ON admins.user_id = users.id WHERE admins.user_id IS NULL");
+
+    //if query failed
+    if ( !query->isActive() )
+        socketHandler->send( Request(req.name, Request::ERROR) );
+    else
+    {
+        //query was successfull, create array with users' data
+        QVector<UserData> users;
+        while ( query->next() )
+            users.push_back(UserData(query));
+
+        //send response containing users' data
+        QByteArray bytes;
+        QDataStream out(&bytes, QIODevice::WriteOnly);
+        out << users;
+        socketHandler->send( Request(req.name, bytes, Request::OK) );
+    }
+}
+
+void TcpServer::onDeleteUserRequest(Request &req, SocketHandler *socketHandler)
+{
+    DBManager db;
+
+    //if db isn't open send error response
+    if ( !db.isOpen() )
+    {
+        socketHandler->send( Request(req.name, Request::ERROR) );
+        return;
+    }
+
+    //retrieve id of user that will be deleted
+    QDataStream in(&req.data, QIODevice::ReadOnly);
+    quint32 userId;
+    in >> userId;
+
+    //delete user with that id from db
+//    QSqlQuery* query
+
+    socketHandler->send( Request(req.name, Request::OK) );
 }

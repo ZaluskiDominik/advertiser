@@ -36,7 +36,10 @@ SOURCES += \
     profiledialog.cpp \
     mainmenu.cpp \
     admindialog.cpp \
-    userswidget.cpp
+    userswidget.cpp \
+    columnlistwidgetfield.cpp \
+    columnlistwidgetcolumn.cpp \
+    columnlistwidget.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -49,7 +52,10 @@ HEADERS += \
     profiledialog.h \
     mainmenu.h \
     admindialog.h \
-    userswidget.h
+    userswidget.h \
+    columnlistwidgetfield.h \
+    columnlistwidgetcolumn.h \
+    columnlistwidget.h
 
 FORMS += \
         mainwindow.ui \

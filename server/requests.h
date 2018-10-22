@@ -22,6 +22,8 @@ public:
         //login authentication
         LOGIN_AUTH,
         CHANGE_USER_DATA,
+        GET_ALL_USERS_DATA,
+        DELETE_USER,
 
         //element used to retrieve number of requests, it's not a request!
         Count
@@ -43,7 +45,7 @@ public:
         :name(_name), status(_status)
     {
     }
-    Request(const RequestName& _name, const QByteArray& _data)
+    Request(const RequestName& _name, const QByteArray& _data = QByteArray())
         :name(_name), data(_data)
     {
     }
