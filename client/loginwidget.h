@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include "ui_loginwidget.h"
-#include "requestreceiver.h"
+#include "../shared/requestreceiver.h"
 
 class LoginWidget : public QWidget, public RequestReceiver
 {

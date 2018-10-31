@@ -1,5 +1,5 @@
 #include "loginwidget.h"
-#include "sockethandler.h"
+#include "../shared/sockethandler.h"
 #include "userdata.h"
 #include <QMessageBox>
 

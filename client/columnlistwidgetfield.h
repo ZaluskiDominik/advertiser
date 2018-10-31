@@ -7,6 +7,7 @@
 class ColumnListWidgetField : public QLabel
 {
     Q_OBJECT
+    friend class ColumnListWidgetColumn;
 public:
     explicit ColumnListWidgetField(int _rowIndex, const QString& name, QWidget* parent = nullptr);
 

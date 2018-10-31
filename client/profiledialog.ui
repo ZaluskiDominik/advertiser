@@ -270,7 +270,7 @@ border: 1px solid #555;
 border-right: none;</string>
          </property>
          <property name="text">
-          <string>Name</string>
+          <string>Imie</string>
          </property>
         </widget>
        </item>
@@ -359,7 +359,7 @@ border: 1px solid #555;
 border-right: none;</string>
          </property>
          <property name="text">
-          <string>Surname</string>
+          <string>Nazwisko</string>
          </property>
         </widget>
        </item>
@@ -448,7 +448,7 @@ border: 1px solid #555;
 border-right: none;</string>
          </property>
          <property name="text">
-          <string>Company name</string>
+          <string>Nazwa firmy</string>
          </property>
         </widget>
        </item>
@@ -537,7 +537,7 @@ border: 1px solid #555;
 border-right: none;</string>
          </property>
          <property name="text">
-          <string>Phone</string>
+          <string>Telefon</string>
          </property>
         </widget>
        </item>

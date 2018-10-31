@@ -13,6 +13,9 @@ public:
     //shows or hides admin panel menu
     void showAdminPanelMenu(bool show = true);
 
+    //disable or enable menu options for regular users
+    void disableNonAdminOptions(bool disabled = true);
+
 private:
     class MenuOption;
     //main menu options

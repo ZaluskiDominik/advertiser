@@ -5,7 +5,7 @@
 #include "ui_userswidget.h"
 #include "columnlistwidget.h"
 #include <QHBoxLayout>
-#include "requestreceiver.h"
+#include "../shared/requestreceiver.h"
 #include "userdata.h"
 
 class UsersWidget : public QWidget, public RequestReceiver
@@ -29,6 +29,9 @@ private slots:
     //remove user in context menu was clicked
     void onRemoveUserClicked();
 
+    //user's data was edited in profileDialog
+    void onUserDataChanged(UserData data);
+
     //response from server with all users' data
     void onGetAllUsersDataResponse(Request& req);
 
@@ -43,6 +46,9 @@ private:
 
     //connect edit and remove signals to appropriate slots
     void connectSlots();
+
+    //returns UserData object created from given row's data
+    UserData rowToUserData(unsigned row);
 
     //sends request to server in order to receive data of all users(excluding admins)
     void requestGetAllUsersData();

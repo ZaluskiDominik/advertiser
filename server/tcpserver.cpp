@@ -55,7 +55,9 @@ void TcpServer::initResponsesToRequests()
         &TcpServer::onLoginAuthRequest,
         &TcpServer::onChangeUserDataRequest,
         &TcpServer::onGetAllUsersData,
-        &TcpServer::onDeleteUserRequest
+        &TcpServer::onDeleteUserRequest,
+        &TcpServer::onGetActivePriceList,
+        &TcpServer::onGetAllPriceListsRequest
     };
 }
 
@@ -268,4 +270,109 @@ void TcpServer::onDeleteUserRequest(Request &req, SocketHandler *socketHandler)
 //    QSqlQuery* query
 
     socketHandler->send( Request(req.name, Request::OK) );
+}
+
+void TcpServer::onGetActivePriceList(Request &req, SocketHandler *socketHandler)
+{
+    DBManager db;
+
+    //if db isn't open send error response
+    if ( !db.isOpen() )
+    {
+        socketHandler->send( Request(req.name, Request::ERROR) );
+        return;
+    }
+
+    //get all data about active price list
+    QSqlQuery* query = db.query(QString("SELECT p.*, a.list_id FROM price_lists AS p INNER JOIN active_price_list AS a ") +
+        "ON a.list_id = p.price_list_id ORDER BY p.hours");
+
+    //if query failed
+    if (!query->isActive())
+        socketHandler->send( Request(req.name, Request::ERROR) );
+    else
+    {
+        //query successed
+        //send response containing price list
+        QByteArray resp;
+        QDataStream out(&resp, QIODevice::WriteOnly);
+        out << convertToPriceList(query);
+        socketHandler->send( Request(req.name, resp, Request::OK) );
+    }
+}
+
+PriceList TcpServer::convertToPriceList(QSqlQuery *query)
+{
+    PriceList prices;
+
+    //add rows
+    while (query->next())
+    {
+        PriceListRow row;
+        row.hours = query->value(query->record().indexOf("hours")).toString();
+        row.weekPrice = query->value(query->record().indexOf("week_price")).toUInt();
+        row.weekendPrice = query->value(query->record().indexOf("weekend_price")).toUInt();
+        prices.rows.push_back(row);
+    }
+
+    //set id of a price list
+    query->first();
+    prices.priceListId = query->value(query->record().indexOf("price_list_id")).toUInt();
+    //info if it's an active price list
+    prices.isActive = !query->isNull( query->record().indexOf("list_id") );
+
+    return prices;
+}
+
+void TcpServer::onGetAllPriceListsRequest(Request &req, SocketHandler *socketHandler)
+{
+    DBManager db;
+
+    //if db isn't open send error response
+    if ( !db.isOpen() )
+    {
+        socketHandler->send( Request(req.name, Request::ERROR) );
+        return;
+    }
+
+    //get all price lists' ids
+    QSqlQuery* query = db.query("SELECT price_list_id FROM price_lists GROUP BY price_list_id");
+
+    //if query failed to execute
+    if ( !query->isActive() )
+        socketHandler->send( Request(req.name, Request::ERROR) );
+    else
+    {
+        //convert all ids from query to vector of ids
+        QVector<int> ids;
+        while (query->next())
+            ids.push_back( query->value(0).toInt() );
+
+        QVector<PriceList> priceLists;
+        //for each id, get this price list content
+        for (auto i = ids.begin() ; i != ids.end() ; i++)
+        {
+            //get content of currently iterated price list
+            query = db.prepare(QString("SELECT p.*, a.list_id FROM price_lists AS p LEFT JOIN ") +
+                "active_price_list AS a ON a.list_id = p.price_list_id WHERE p.price_list_id = ? ORDER BY p.hours");
+            query->addBindValue(*i);
+            query->exec();
+
+            //if query failed
+            if ( !query->isActive() )
+            {
+                socketHandler->send( Request(req.name, Request::ERROR) );
+                return;
+            }
+
+            //add price list returned by query to price lists array
+            priceLists.push_back( convertToPriceList(query) );
+        }
+
+        //send response
+        QByteArray bytes;
+        QDataStream out(&bytes, QIODevice::WriteOnly);
+        out << priceLists;
+        socketHandler->send( Request(req.name, bytes, Request::OK) );
+    }
 }

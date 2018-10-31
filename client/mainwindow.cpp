@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
-#include "sockethandler.h"
+#include "../shared/sockethandler.h"
 #include "userdata.h"
 #include <QGraphicsDropShadowEffect>
 #include <QMessageBox>
@@ -47,6 +47,7 @@ void MainWindow::initMenu()
     //connect to menu options' signals
     QObject::connect(mainMenu, SIGNAL(profileClicked()), this, SLOT(onProfileClicked()));
     QObject::connect(mainMenu, SIGNAL(adminPanelClicked()), this, SLOT(onAdminPanelClicked()));
+    QObject::connect(mainMenu, SIGNAL(priceListClicked()), this, SLOT(onPriceListClicked()));
 }
 
 void MainWindow::initToolBarActions()
@@ -144,12 +145,20 @@ void MainWindow::onUserLoggedIn()
     //if user is an admin show label informing about that, else show user's login
     adminLabelAction->setVisible(user.isAdmin);
     loginLabelAction->setVisible(!user.isAdmin);
+
     //if user is an admin show admin panel menu option
     mainMenu->showAdminPanelMenu(user.isAdmin);
+    //if user is an admin disable regula users options
+    mainMenu->disableNonAdminOptions(user.isAdmin);
 
     //if user isn't an admin, set loginLabel's text to user's login
     if (!user.isAdmin)
         loginLabel->setText(user.login);
+}
+
+void MainWindow::onUserDataChanged(UserData data)
+{
+    user = data;
 }
 
 void MainWindow::onLogout()
@@ -160,6 +169,7 @@ void MainWindow::onLogout()
 void MainWindow::onProfileClicked()
 {
     profileDialog = new ProfileDialog(user, this);
+    QObject::connect(profileDialog, SIGNAL(userDataChanged(UserData)), this, SLOT(onUserDataChanged(UserData)));
     profileDialog->show();
 }
 
@@ -168,4 +178,23 @@ void MainWindow::onAdminPanelClicked()
     adminDialog = new AdminDialog(this);
     adminDialog->setAttribute(Qt::WA_DeleteOnClose);
     adminDialog->show();
+}
+
+void MainWindow::onPriceListClicked()
+{
+    //create dialog
+    QDialog* priceDialog = new QDialog(this);
+    priceDialog->setModal(true);
+    priceDialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    //create layout for dialog
+    QHBoxLayout* priceLayout = new QHBoxLayout(priceDialog);
+    priceLayout->addWidget( new PriceListWidget(true) );
+    priceLayout->setContentsMargins(0, 0, 0, 0);
+
+    //resize dialog, apply layout and show everything on the screen
+    priceDialog->resize(800, 700);
+    priceDialog->setMinimumSize(500, 300);
+    priceDialog->setLayout(priceLayout);
+    priceDialog->show();
 }

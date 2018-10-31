@@ -4,14 +4,18 @@
 #include <QDialog>
 #include "ui_profiledialog.h"
 #include "userdata.h"
-#include "sockethandler.h"
+#include "../shared/sockethandler.h"
 
 class ProfileDialog : public QDialog, public RequestReceiver
 {
     Q_OBJECT
 
 public:
-    explicit ProfileDialog(UserData& userData, QWidget *parent = nullptr);
+    explicit ProfileDialog(const UserData& userData, QWidget *parent = nullptr);
+
+signals:
+    //signal called when user's data was changed in db
+    void userDataChanged(UserData);
 
 private slots:
     //ok button clicked
@@ -32,8 +36,8 @@ protected:
 private:
     Ui::ProfileDialog ui;
 
-    //user data that was supplied in constructor, and will be changed after apply button click
-    UserData& editedUser;
+    //user data that was supplied in constructor
+    UserData editedUser;
 
     //set text to each line edit with user's data
     void displayUserData();

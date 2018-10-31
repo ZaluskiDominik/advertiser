@@ -8,6 +8,7 @@
 #include "profiledialog.h"
 #include "mainmenu.h"
 #include "admindialog.h"
+#include "pricelistwidget.h"
 
 class MainWindow : public QMainWindow
 {
@@ -69,14 +70,20 @@ private slots:
     //user gave valid login credentials during login process
     void onUserLoggedIn();
 
+    //user's data was edited in profileDialog
+    void onUserDataChanged(UserData data);
+
     //user clicked logout button
     void onLogout();
 
-    //profile action was triggered
+    //profile action was triggered, show profile data
     void onProfileClicked();
 
-    //admin panel menu was clicked
+    //admin panel menu was clicked, show admin panel
     void onAdminPanelClicked();
+
+    //price list menu was clicked, show price list
+    void onPriceListClicked();
 };
 
 #endif // MAINWINDOW_H

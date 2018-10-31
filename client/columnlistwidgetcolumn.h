@@ -17,6 +17,9 @@ public:
     //adds a field in column
     void addField(const QString& fieldName);
 
+    //removes a field from column
+    void removeField(int row);
+
 private:
     //column's header
     QLabel* headerLabel;
@@ -26,6 +29,7 @@ private:
     //list of all fields in column
     std::vector<ColumnListWidgetField*> fields;
 
+    //dummy widget that will take all available space in layout on bottom
     QWidget* spaceFiller;
 
     //sets layout and adds column's header

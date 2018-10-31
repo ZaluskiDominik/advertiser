@@ -1,6 +1,7 @@
 #include "userswidget.h"
-#include "sockethandler.h"
+#include "../shared/sockethandler.h"
 #include <QMessageBox>
+#include "profiledialog.h"
 
 extern SocketHandler socketHandler;
 
@@ -30,8 +31,8 @@ void UsersWidget::registerRequestsReceiver(SocketHandler *socketHandler)
 {
     RequestReceiver::registerRequestsReceiver(socketHandler);
 
-    socketHandler->addRequestReceiver(
-        std::vector<Request::RequestName>{ Request::GET_ALL_USERS_DATA, Request::DELETE_USER }, *this);
+    socketHandler->addRequestReceiver(std::vector<Request::RequestName>{
+        Request::GET_ALL_USERS_DATA, Request::DELETE_USER }, *this);
 }
 
 void UsersWidget::initColumns()
@@ -49,6 +50,20 @@ void UsersWidget::connectSlots()
 {
     QObject::connect(ui.columnList, SIGNAL(editClicked()), this, SLOT(onEditUserClicked()));
     QObject::connect(ui.columnList, SIGNAL(removeClicked()), this, SLOT(onRemoveUserClicked()));
+}
+
+UserData UsersWidget::rowToUserData(unsigned row)
+{
+    UserData data;
+    data.id = ui.columnList->getFieldValue(row, 0).toUInt();
+    data.login = ui.columnList->getFieldValue(row, 1);
+    data.name = ui.columnList->getFieldValue(row, 2);
+    data.surname = ui.columnList->getFieldValue(row, 3);
+    data.companyName = ui.columnList->getFieldValue(row, 4);
+    data.phone = ui.columnList->getFieldValue(row, 5);
+    data.email = ui.columnList->getFieldValue(row, 6);
+
+    return data;
 }
 
 void UsersWidget::requestGetAllUsersData()
@@ -72,12 +87,28 @@ void UsersWidget::on_addUserBtn_clicked()
 
 void UsersWidget::onEditUserClicked()
 {
-
+    UserData data = rowToUserData( static_cast<unsigned>(ui.columnList->getCurrentRow()) );
+    ProfileDialog* profile = new ProfileDialog(data, this);
+    QObject::connect(profile, SIGNAL(userDataChanged(UserData)), this, SLOT(onUserDataChanged(UserData)));
+    profile->show();
 }
 
 void UsersWidget::onRemoveUserClicked()
 {
     requestDeleteUser();
+}
+
+void UsersWidget::onUserDataChanged(UserData data)
+{
+    //set values to edited row
+    unsigned row = static_cast<unsigned>(ui.columnList->getCurrentRow());
+    ui.columnList->setFieldValue(row, 0, QString::number(data.id));
+    ui.columnList->setFieldValue(row, 1, data.login);
+    ui.columnList->setFieldValue(row, 2, data.name);
+    ui.columnList->setFieldValue(row, 3, data.surname);
+    ui.columnList->setFieldValue(row, 4, data.companyName);
+    ui.columnList->setFieldValue(row, 5, data.phone);
+    ui.columnList->setFieldValue(row, 6, data.email);
 }
 
 void UsersWidget::onGetAllUsersDataResponse(Request &req)

@@ -9,13 +9,27 @@ ColumnListWidgetColumn::ColumnListWidgetColumn(const QString &columnName, QWidge
 
 void ColumnListWidgetColumn::addField(const QString &fieldName)
 {
+    //remove space filler in order to add a new field to layout
     layout->removeWidget(spaceFiller);
 
     auto* field = new ColumnListWidgetField( static_cast<int>(fields.size()), fieldName, this );
     layout->addWidget(field);
     fields.push_back(field);
 
+    //restore space filler to layout
     layout->addWidget(spaceFiller);
+}
+
+void ColumnListWidgetColumn::removeField(int row)
+{
+    //delete field
+    fields[static_cast<unsigned>(row)]->deleteLater();
+    //remove field from fields array
+    fields.erase(fields.begin() + row);
+
+    //decrement rowIndexes of all fields that are further in fields array
+    for (auto i = fields.begin() + row ; i != fields.end() ; i++)
+         (*i)->rowIndex--;
 }
 
 void ColumnListWidgetColumn::initColumn(const QString &columnName)

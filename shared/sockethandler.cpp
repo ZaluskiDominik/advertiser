@@ -128,7 +128,6 @@ void SocketHandler::onReadyRead()
 {
     //append read bytes to buffer which compose all message's chunks after each ready read occurs
     msgBuffer.append( socket.readAll() );
-
     //read each request
     while (msgBuffer.size())
     {
@@ -150,10 +149,10 @@ void SocketHandler::onReadyRead()
         if ( static_cast<quint32>(msgBuffer.size()) >= msgSize )
         {
             //read bytes of one request
-            QByteArray reqBytes = msgBuffer.mid(4, static_cast<int>(msgSize));
+            QByteArray reqBytes = msgBuffer.mid(4, static_cast<int>(msgSize) - 4);
             //compose request object from those bytes and remove them from msgBuffer
             composeRequest(reqBytes);
-            msgBuffer.remove(0, static_cast<int>(msgSize) + 4);
+            msgBuffer.remove(0, static_cast<int>(msgSize));
         }
         else
             break;

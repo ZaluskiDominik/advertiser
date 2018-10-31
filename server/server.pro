@@ -27,21 +27,23 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         dialog.cpp \
-    requests.cpp \
+    ../shared/requests.cpp \
     tcpserver.cpp \
-    sockethandler.cpp \
+    ../shared/sockethandler.cpp \
     dbmanager.cpp \
-    requestreceiver.cpp \
-    userdata.cpp
+    ../shared/requestreceiver.cpp \
+    userdata.cpp \
+    ../shared/pricelist.cpp
 
 HEADERS += \
         dialog.h \
-    sockethandler.h \
-    requests.h \
+    ../shared/sockethandler.h \
+    ../shared/requests.h \
     tcpserver.h \
-    requestreceiver.h \
+    ../shared/requestreceiver.h \
     dbmanager.h \
-    userdata.h
+    userdata.h \
+    ../shared/pricelist.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

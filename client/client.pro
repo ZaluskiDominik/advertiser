@@ -28,10 +28,10 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     loginwidget.cpp \
-    requests.cpp \
-    sockethandler.cpp \
+    ../shared/requests.cpp \
+    ../shared/sockethandler.cpp \
     mainwidget.cpp \
-    requestreceiver.cpp \
+    ../shared/requestreceiver.cpp \
     userdata.cpp \
     profiledialog.cpp \
     mainmenu.cpp \
@@ -39,14 +39,18 @@ SOURCES += \
     userswidget.cpp \
     columnlistwidgetfield.cpp \
     columnlistwidgetcolumn.cpp \
-    columnlistwidget.cpp
+    columnlistwidget.cpp \
+    ../shared/pricelist.cpp \
+    pricelistwidget.cpp \
+    allpricelistswidget.cpp \
+    pricelisttab.cpp
 
 HEADERS += \
         mainwindow.h \
     loginwidget.h \
-    requestreceiver.h \
-    requests.h \
-    sockethandler.h \
+    ../shared/requestreceiver.h \
+    ../shared/requests.h \
+    ../shared/sockethandler.h \
     mainwidget.h \
     userdata.h \
     profiledialog.h \
@@ -55,7 +59,11 @@ HEADERS += \
     userswidget.h \
     columnlistwidgetfield.h \
     columnlistwidgetcolumn.h \
-    columnlistwidget.h
+    columnlistwidget.h \
+    ../shared/pricelist.h \
+    pricelistwidget.h \
+    allpricelistswidget.h \
+    pricelisttab.h
 
 FORMS += \
         mainwindow.ui \
@@ -63,7 +71,9 @@ FORMS += \
     mainwidget.ui \
     profiledialog.ui \
     admindialog.ui \
-    userswidget.ui
+    userswidget.ui \
+    pricelistwidget.ui \
+    allpricelistswidget.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

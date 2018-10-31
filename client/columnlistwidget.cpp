@@ -39,9 +39,11 @@ void ColumnListWidget::setFieldValue(unsigned row, unsigned col, const QString& 
 
 void ColumnListWidget::removeCurrentRow()
 {
+    //remove in each column field with index equal to currentIndex
     for (auto i = columns.begin() ; i != columns.end() ; i++)
-        (*i)->fields[static_cast<unsigned>(currentRow)]->deleteLater();
+        (*i)->removeField(currentRow);
 
+    //set current row to unselected state
     currentRow = -1;
 }
 
@@ -74,6 +76,7 @@ void ColumnListWidget::initLayout()
 
     splitter = new QSplitter(this);
     splitter->setHandleWidth(1);
+    splitter->setChildrenCollapsible(false);
     layout->addWidget(splitter);
 }
 

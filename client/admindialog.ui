@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>AdminDialog</class>
  <widget class="QDialog" name="AdminDialog">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -39,6 +42,9 @@
      </property>
      <property name="handleWidth">
       <number>1</number>
+     </property>
+     <property name="childrenCollapsible">
+      <bool>false</bool>
      </property>
      <widget class="QWidget" name="widget" native="true">
       <property name="sizePolicy">
@@ -136,12 +142,12 @@ font-weight: bold;
 color: #444;</string>
          </property>
          <property name="text">
-          <string>Użytkownicy</string>
+          <string>Reklamodawcy</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="priceListBtn">
+        <widget class="QPushButton" name="priceListsBtn">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
            <horstretch>0</horstretch>

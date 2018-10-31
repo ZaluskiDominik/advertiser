@@ -13,6 +13,13 @@ void MainMenu::showAdminPanelMenu(bool show)
     openAdminPanelBtn->setVisible(show);
 }
 
+void MainMenu::disableNonAdminOptions(bool disabled)
+{
+    openAdsEditorBtn->setDisabled(disabled);
+    openPriceListBtn->setDisabled(disabled);
+    openProfileBtn->setDisabled(disabled);
+}
+
 void MainMenu::initLayout()
 {
     layout = new QHBoxLayout;

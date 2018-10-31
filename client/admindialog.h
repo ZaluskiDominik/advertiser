@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "ui_admindialog.h"
 #include "userswidget.h"
+#include "allpricelistswidget.h"
 
 class AdminDialog : public QDialog
 {
@@ -11,11 +12,12 @@ class AdminDialog : public QDialog
 
 public:
     explicit AdminDialog(QWidget *parent = nullptr);
-    ~AdminDialog();
 
 private slots:
     //users button clicked in side menu, show usersWidget
     void on_usersBtn_clicked();
+    //price lists button clicked in side menu, show pricesWidget
+    void on_priceListsBtn_clicked();
 
 private:
     Ui::AdminDialog ui;
@@ -25,6 +27,10 @@ private:
 
     //widget holding list of all users obtained from db
     UsersWidget usersWidget;
+
+    //widget presenting all available price lists
+    AllPriceListsWidget pricesWidget;
+
     //*****************
 
     //adds widgets to stacket widget object

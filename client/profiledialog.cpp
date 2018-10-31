@@ -4,7 +4,7 @@
 
 extern SocketHandler socketHandler;
 
-ProfileDialog::ProfileDialog(UserData &userData, QWidget *parent) :
+ProfileDialog::ProfileDialog(const UserData &userData, QWidget *parent) :
     QDialog(parent), editedUser(userData)
 {
     ui.setupUi(this);
@@ -86,6 +86,7 @@ void ProfileDialog::onChangeUserDataResponse(Request &req)
 
     QDataStream stream(&req.data, QIODevice::ReadOnly);
     stream >> editedUser;
+    userDataChanged(editedUser);
     QMessageBox::information(this, "Zapisano zmiany", "Zmiany zostały zapisane");
 }
 

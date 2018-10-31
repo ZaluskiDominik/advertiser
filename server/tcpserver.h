@@ -3,9 +3,10 @@
 
 #include <QTcpServer>
 #include <vector>
-#include "sockethandler.h"
-#include "requests.h"
-#include "requestreceiver.h"
+#include "../shared/sockethandler.h"
+#include "../shared/requests.h"
+#include "../shared/requestreceiver.h"
+#include "../shared/pricelist.h"
 #include "userdata.h"
 
 struct User;
@@ -67,6 +68,14 @@ private:
 
     //client wants to remove a user from db
     void onDeleteUserRequest(Request& req, SocketHandler* socketHandler);
+
+    //client request data about active price list
+    void onGetActivePriceList(Request& req, SocketHandler* socketHandler);
+    PriceList convertToPriceList(QSqlQuery* query);
+
+    //client requests data about all available price lists
+    void onGetAllPriceListsRequest(Request& req, SocketHandler* socketHandler);
+
 };
 
 //container for strorig user's socketHandler and id
