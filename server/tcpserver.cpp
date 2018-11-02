@@ -91,13 +91,8 @@ void TcpServer::registerRequestsReceiver(SocketHandler *socketHandler)
     //call parent's implementation of this function
     RequestReceiver::registerRequestsReceiver(socketHandler);
 
-    //receive all request listed in requests.h
-    std::vector<Request::RequestName> requestsNames;
-    for (int i = 0 ; i < Request::Count ; i++)
-        requestsNames.push_back( static_cast<Request::RequestName>(i) );
-
     //register that requests in socketHandler
-    socketHandler->addRequestReceiver(requestsNames, *this);
+    socketHandler->addRequestReceiver(*this);
 }
 
 User &TcpServer::getUserBySocketHandler(SocketHandler *socketHandler)
@@ -118,12 +113,11 @@ void TcpServer::onLoginAuthRequest(Request &req, SocketHandler *socketHandler)
     QDataStream in(&req.data, QIODevice::ReadOnly);
     in >> login >> password;
 
-
     DBManager db;
     //if couldn't connect to db send error response to client
     if ( !db.isOpen() )
     {
-        socketHandler->send(Request(req.name, Request::ERROR));
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
         return;
     }
 
@@ -148,10 +142,10 @@ void TcpServer::onLoginAuthRequest(Request &req, SocketHandler *socketHandler)
     }
 
     //send response to client
-    sendLoginAuthResponse(socketHandler, userData, isAuth);
+    sendLoginAuthResponse(req.receiverId, socketHandler, userData, isAuth);
 }
 
-void TcpServer::sendLoginAuthResponse(SocketHandler* socketHandler, const UserData &userData, bool isAuth)
+void TcpServer::sendLoginAuthResponse(quint32 receiverId, SocketHandler* socketHandler, const UserData &userData, bool isAuth)
 {
     QByteArray resp;
     QDataStream out(&resp, QIODevice::WriteOnly);
@@ -161,7 +155,7 @@ void TcpServer::sendLoginAuthResponse(SocketHandler* socketHandler, const UserDa
     //container for user data
     out << userData;
 
-    socketHandler->send( Request(Request::LOGIN_AUTH, resp, Request::OK) );
+    socketHandler->send( Request(receiverId, Request::LOGIN_AUTH, resp, Request::OK) );
 }
 
 void TcpServer::onChangeUserDataRequest(Request& req, SocketHandler* socketHandler)
@@ -177,32 +171,29 @@ void TcpServer::onChangeUserDataRequest(Request& req, SocketHandler* socketHandl
         stream >> userData;
 
         //if data was saved
-        if ( saveUserData(userData, socketHandler) )
+        if ( saveUserData(userData) )
         {
             //send to client updated user's data
             QByteArray outBuffer;
             QDataStream out(&outBuffer, QIODevice::WriteOnly);
             out << userData;
-            socketHandler->send( Request(req.name, outBuffer, Request::OK) );
+            socketHandler->send( Request(req.receiverId, req.name, outBuffer, Request::OK) );
         }
         else
         {
             //data could't be saved, send error response
-            socketHandler->send( Request(req.name, Request::ERROR) );
+            socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
         }
     }
 }
 
-bool TcpServer::saveUserData(const UserData &userData, SocketHandler* socketHandler)
+bool TcpServer::saveUserData(const UserData &userData)
 {
     DBManager db;
 
     //if db isn't open send error response
     if ( !db.isOpen() )
-    {
-        socketHandler->send( Request(Request::CHANGE_USER_DATA, Request::ERROR) );
         return false;
-    }
 
     //update user's data
     QSqlQuery* query = db.prepare(QString("UPDATE users SET name = ?, surname = ?, company_name = ?") +
@@ -225,7 +216,7 @@ void TcpServer::onGetAllUsersData(Request &req, SocketHandler *socketHandler)
     //if db isn't open send error response
     if ( !db.isOpen() )
     {
-        socketHandler->send( Request(req.name, Request::ERROR) );
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
         return;
     }
 
@@ -235,7 +226,7 @@ void TcpServer::onGetAllUsersData(Request &req, SocketHandler *socketHandler)
 
     //if query failed
     if ( !query->isActive() )
-        socketHandler->send( Request(req.name, Request::ERROR) );
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
     else
     {
         //query was successfull, create array with users' data
@@ -247,7 +238,7 @@ void TcpServer::onGetAllUsersData(Request &req, SocketHandler *socketHandler)
         QByteArray bytes;
         QDataStream out(&bytes, QIODevice::WriteOnly);
         out << users;
-        socketHandler->send( Request(req.name, bytes, Request::OK) );
+        socketHandler->send( Request(req.receiverId, req.name, bytes, Request::OK) );
     }
 }
 
@@ -258,7 +249,7 @@ void TcpServer::onDeleteUserRequest(Request &req, SocketHandler *socketHandler)
     //if db isn't open send error response
     if ( !db.isOpen() )
     {
-        socketHandler->send( Request(req.name, Request::ERROR) );
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
         return;
     }
 
@@ -270,7 +261,7 @@ void TcpServer::onDeleteUserRequest(Request &req, SocketHandler *socketHandler)
     //delete user with that id from db
 //    QSqlQuery* query
 
-    socketHandler->send( Request(req.name, Request::OK) );
+    socketHandler->send( Request(req.receiverId, req.name, Request::OK) );
 }
 
 void TcpServer::onGetActivePriceList(Request &req, SocketHandler *socketHandler)
@@ -280,7 +271,7 @@ void TcpServer::onGetActivePriceList(Request &req, SocketHandler *socketHandler)
     //if db isn't open send error response
     if ( !db.isOpen() )
     {
-        socketHandler->send( Request(req.name, Request::ERROR) );
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
         return;
     }
 
@@ -290,7 +281,7 @@ void TcpServer::onGetActivePriceList(Request &req, SocketHandler *socketHandler)
 
     //if query failed
     if (!query->isActive())
-        socketHandler->send( Request(req.name, Request::ERROR) );
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
     else
     {
         //query successed
@@ -298,7 +289,7 @@ void TcpServer::onGetActivePriceList(Request &req, SocketHandler *socketHandler)
         QByteArray resp;
         QDataStream out(&resp, QIODevice::WriteOnly);
         out << convertToPriceList(query);
-        socketHandler->send( Request(req.name, resp, Request::OK) );
+        socketHandler->send( Request(req.receiverId, req.name, resp, Request::OK) );
     }
 }
 
@@ -332,7 +323,7 @@ void TcpServer::onGetAllPriceListsRequest(Request &req, SocketHandler *socketHan
     //if db isn't open send error response
     if ( !db.isOpen() )
     {
-        socketHandler->send( Request(req.name, Request::ERROR) );
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
         return;
     }
 
@@ -341,7 +332,7 @@ void TcpServer::onGetAllPriceListsRequest(Request &req, SocketHandler *socketHan
 
     //if query failed to execute
     if ( !query->isActive() )
-        socketHandler->send( Request(req.name, Request::ERROR) );
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
     else
     {
         //convert all ids from query to vector of ids
@@ -362,7 +353,7 @@ void TcpServer::onGetAllPriceListsRequest(Request &req, SocketHandler *socketHan
             //if query failed
             if ( !query->isActive() )
             {
-                socketHandler->send( Request(req.name, Request::ERROR) );
+                socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
                 return;
             }
 
@@ -374,7 +365,7 @@ void TcpServer::onGetAllPriceListsRequest(Request &req, SocketHandler *socketHan
         QByteArray bytes;
         QDataStream out(&bytes, QIODevice::WriteOnly);
         out << priceLists;
-        socketHandler->send( Request(req.name, bytes, Request::OK) );
+        socketHandler->send( Request(req.receiverId, req.name, bytes, Request::OK) );
     }
 }
 
@@ -385,7 +376,7 @@ void TcpServer::onChangeActivePriceListRequest(Request &req, SocketHandler *sock
     //if db isn't open send error response
     if ( !db.isOpen() )
     {
-        socketHandler->send( Request(req.name, Request::ERROR) );
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
         return;
     }
 
@@ -401,5 +392,5 @@ void TcpServer::onChangeActivePriceListRequest(Request &req, SocketHandler *sock
 
     //if query failed to execute, send error status, else send ok status
     Request::RequestStatus status = ( query->isActive() ) ? Request::OK : Request::ERROR;
-    socketHandler->send( Request(req.name, status) );
+    socketHandler->send( Request(req.receiverId, req.name, status) );
 }

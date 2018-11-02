@@ -70,7 +70,7 @@ void ProfileDialog::sendChangeUserDataRequest()
     QByteArray bytes;
     QDataStream stream(&bytes, QIODevice::WriteOnly);
     stream << getLineEditsData();
-    Request req(Request::CHANGE_USER_DATA, bytes);
+    Request req(getReceiverId(), Request::CHANGE_USER_DATA, bytes);
     socketHandler.send(req);
 }
 
@@ -120,5 +120,5 @@ void ProfileDialog::onDataReceived(Request req, SocketHandler *)
 void ProfileDialog::registerRequestsReceiver(SocketHandler *socketHandler)
 {
     RequestReceiver::registerRequestsReceiver(socketHandler);
-    socketHandler->addRequestReceiver(std::vector<Request::RequestName>({ Request::CHANGE_USER_DATA }), *this);
+    socketHandler->addRequestReceiver(*this);
 }

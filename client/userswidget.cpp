@@ -31,8 +31,7 @@ void UsersWidget::registerRequestsReceiver(SocketHandler *socketHandler)
 {
     RequestReceiver::registerRequestsReceiver(socketHandler);
 
-    socketHandler->addRequestReceiver(std::vector<Request::RequestName>{
-        Request::GET_ALL_USERS_DATA, Request::DELETE_USER }, *this);
+    socketHandler->addRequestReceiver(*this);
 }
 
 void UsersWidget::initColumns()
@@ -68,7 +67,7 @@ UserData UsersWidget::rowToUserData(unsigned row)
 
 void UsersWidget::requestGetAllUsersData()
 {
-    socketHandler.send( Request(Request::GET_ALL_USERS_DATA) );
+    socketHandler.send( Request(getReceiverId(), Request::GET_ALL_USERS_DATA) );
 }
 
 void UsersWidget::requestDeleteUser()
@@ -77,7 +76,7 @@ void UsersWidget::requestDeleteUser()
     QByteArray bytes;
     QDataStream stream(&bytes, QIODevice::WriteOnly);
     stream << ui.columnList->getFieldValue( static_cast<unsigned>(ui.columnList->getCurrentRow()), 0 );
-    socketHandler.send( Request(Request::DELETE_USER, bytes) );
+    socketHandler.send( Request(getReceiverId(), Request::DELETE_USER, bytes) );
 }
 
 void UsersWidget::on_addUserBtn_clicked()

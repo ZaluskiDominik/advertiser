@@ -28,8 +28,6 @@ private slots:
 protected:
     //overriden virtual function that receive request and invokes appropriate function handling that request
     void onDataReceived(Request request, SocketHandler* sender) final;
-
-    //register all available requests(listed in requests.h) in socketHandler
     void registerRequestsReceiver(SocketHandler* socketHandler) final;
 
 private:
@@ -56,12 +54,12 @@ private:
     //client has requested login credentials authentication
     void onLoginAuthRequest(Request& req, SocketHandler* socketHandler);
     //send response if login was successfull
-    void sendLoginAuthResponse(SocketHandler *socketHandler, const UserData &userData, bool isAuth);
+    void sendLoginAuthResponse(quint32 receiverId, SocketHandler *socketHandler, const UserData &userData, bool isAuth);
 
     //client wants to change his data, save changes in db
     void onChangeUserDataRequest(Request& req, SocketHandler* socketHandler);
     //saves changes in user's data in db
-    bool saveUserData(const UserData& userData, SocketHandler *socketHandler);
+    bool saveUserData(const UserData& userData);
 
     //client request data of all users excluding admins
     void onGetAllUsersData(Request& req, SocketHandler* socketHandler);

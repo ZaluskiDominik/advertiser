@@ -31,8 +31,8 @@ public:
     void send(const Request& request);
 
     //adds request receiver to requestReceivers array
-    //instance of descendant from RequestReceiver will receive data from listed requests
-    void addRequestReceiver(std::vector<Request::RequestName> requestsNames, RequestReceiver &receiver);
+    //from that point RequestReceiver descendant can receive messages from this socketHandler
+    void addRequestReceiver(RequestReceiver &receiver);
 
     //removes RequestReceiver instance from requestsReceivers array of lists
     //that instance won't get futher any request from this socket handler
@@ -44,12 +44,17 @@ private:
     //whether there is a connection to host
     bool connected = false;
 
+    //whether server constructed that socket handler
+    bool serverSide;
+
     //array of bytes composing chunks of sent message
     QByteArray msgBuffer;
 
-    //for each request's code there is appropriate callback function that will be invoked
-    //request code is equal to array's index
-    std::vector< std::list<RequestReceiver*> > requestsReceivers;
+    //list of registered requests receivers
+    std::list<RequestReceiver*> requestsReceivers;
+
+    //retuns pointer to RequestReceiver instance found by receiverId, or nullptr if pointer was not found
+    RequestReceiver* getReceiverById(const quint32& receiverId);
 
     //composes request from sent chunks
     void composeRequest(QByteArray& bytes);

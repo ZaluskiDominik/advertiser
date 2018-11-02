@@ -22,8 +22,7 @@ void LoginWidget::registerRequestsReceiver(SocketHandler *socketHandler)
 {
     RequestReceiver::registerRequestsReceiver(socketHandler);
 
-    std::vector<Request::RequestName> names({ Request::LOGIN_AUTH });
-    socketHandler->addRequestReceiver(names, *this);
+    socketHandler->addRequestReceiver(*this);
 }
 
 void LoginWidget::on_pushButton_clicked()
@@ -55,7 +54,7 @@ void LoginWidget::sendLoginAuthRequest()
     //write login and password
     stream << ui.login->text() << ui.password->text();
     //send request
-    socketHandler.send( Request(Request::LOGIN_AUTH, buffer) );
+    socketHandler.send( Request(getReceiverId(), Request::LOGIN_AUTH, buffer) );
 }
 
 void LoginWidget::onLoginAuthResponse(Request& req)

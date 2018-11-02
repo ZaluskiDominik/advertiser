@@ -3,11 +3,14 @@
 QDataStream& operator>>(QDataStream& stream, Request& req)
 {
     quint32 reqCode;
-    QByteArray bytes;
     stream >> reqCode;
-    stream >> bytes;
     req.name = static_cast<Request::RequestName>(reqCode);
-    req.data = bytes;
+    stream >> req.data;
+    stream >> req.receiverId;
+    quint32 statusCode;
+    stream >> statusCode;
+    req.status = static_cast<Request::RequestStatus>(statusCode);
+
     return stream;
 }
 
@@ -17,5 +20,8 @@ Request::operator QByteArray() const
     QDataStream stream (&bytes, QIODevice::WriteOnly);
     stream << static_cast<quint32>(name);
     stream << data;
+    stream << receiverId;
+    stream << static_cast<quint32>(status);
+
     return bytes;
 }

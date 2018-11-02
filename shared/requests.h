@@ -32,6 +32,8 @@ public:
         Count
     };
 
+    //number that will identify RequestReceiver instance to which response will be send
+    quint32 receiverId;
     //what request is this
     RequestName name;
     RequestStatus status;
@@ -40,16 +42,16 @@ public:
 
     //overloaded constructors
     Request() = default;
-    Request(const RequestName& _name, const QByteArray& _data, const RequestStatus& _status)
-        :name(_name), status(_status), data(_data)
+    Request(const quint32& _receiverId, const RequestName& _name, const QByteArray& _data, const RequestStatus& _status)
+        :receiverId(_receiverId), name(_name), status(_status), data(_data)
     {
     }
-    Request(const RequestName& _name, const RequestStatus& _status)
-        :name(_name), status(_status)
+    Request(const quint32& _receiverId, const RequestName& _name, const RequestStatus& _status)
+        :receiverId(_receiverId), name(_name), status(_status)
     {
     }
-    Request(const RequestName& _name, const QByteArray& _data = QByteArray())
-        :name(_name), data(_data)
+    Request(const quint32& _receiverId, const RequestName& _name, const QByteArray& _data = QByteArray())
+        :receiverId(_receiverId), name(_name), data(_data)
     {
     }
 

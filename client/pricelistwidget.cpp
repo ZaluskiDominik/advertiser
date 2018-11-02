@@ -43,7 +43,7 @@ void PriceListWidget::setActive()
     QDataStream ss(&data, QIODevice::WriteOnly);
     ss << priceListId;
 
-    socketHandler.send( Request(Request::CHANGE_ACTIVE_PRICE_LIST, data) );
+    socketHandler.send( Request(getReceiverId(), Request::CHANGE_ACTIVE_PRICE_LIST, data) );
 }
 
 void PriceListWidget::onDataReceived(Request req, SocketHandler *)
@@ -58,8 +58,7 @@ void PriceListWidget::registerRequestsReceiver(SocketHandler *socketHandler)
 {
     RequestReceiver::registerRequestsReceiver(socketHandler);
 
-    socketHandler->addRequestReceiver(std::vector<Request::RequestName>{
-        Request::GET_ACTIVE_PRICE_LIST, Request::CHANGE_ACTIVE_PRICE_LIST}, *this);
+    socketHandler->addRequestReceiver(*this);
 }
 
 void PriceListWidget::initTable()
@@ -90,7 +89,7 @@ void PriceListWidget::convertPriceListToTableContent(const PriceList &prices)
 
 void PriceListWidget::sendGetActivePriceListRequest()
 {
-    socketHandler.send( Request(Request::GET_ACTIVE_PRICE_LIST) );
+    socketHandler.send( Request(getReceiverId(), Request::GET_ACTIVE_PRICE_LIST) );
 }
 
 void PriceListWidget::onGetActivePriceListResponse(Request &req)

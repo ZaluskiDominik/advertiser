@@ -4,15 +4,13 @@
 SocketHandler::SocketHandler(QObject *parent)
     :QObject(parent)
 {
-    //init size of requestsReceivers array
-    requestsReceivers.resize(Request::Count);
+    serverSide = false;
 }
 
 SocketHandler::SocketHandler(qintptr socketId, QObject *parent)
     :QObject(parent)
 {
-    //init size of requestsReceivers array
-    requestsReceivers.resize(Request::Count);
+    serverSide = true;
 
     //if couldn't set socket descriptor, throw exception
     if ( !socket.setSocketDescriptor(socketId) )
@@ -24,10 +22,7 @@ SocketHandler::SocketHandler(qintptr socketId, QObject *parent)
 SocketHandler::~SocketHandler()
 {
     for (auto i = requestsReceivers.begin() ; i != requestsReceivers.end() ; i++)
-    {
-        for (auto j = i->begin() ; j != i->end() ; j++)
-            (*j)->registeredSockets.remove(this);
-    }
+            (*i)->registeredSockets.remove(this);
 }
 
 bool SocketHandler::connectToHost(QString host, quint16 port, int msWaitTime)
@@ -66,24 +61,23 @@ void SocketHandler::send(const Request& request)
     socket.write(dataBuffer);
 }
 
-void SocketHandler::addRequestReceiver(std::vector<Request::RequestName> requestsNames, RequestReceiver &receiver)
+void SocketHandler::addRequestReceiver(RequestReceiver &receiver)
 {
-    //for all requests' names
-    for (auto i = requestsNames.begin() ; i != requestsNames.end() ; i++)
-    {
-        //if request's code is valid
-        if ( static_cast<unsigned int>(*i) < requestsReceivers.size() )
-        {
-            //append request's receiver of given request to list
-            requestsReceivers[*i].push_back(&receiver);
-        }
-    }
+    //if that receiver wasn't already added
+    if ( std::find(requestsReceivers.begin(), requestsReceivers.end(), &receiver) == requestsReceivers.end() )
+        requestsReceivers.push_back(&receiver);
 }
 
 void SocketHandler::removeRequestReceiver(RequestReceiver &receiver)
 {
-    for (auto i = requestsReceivers.begin() ; i != requestsReceivers.end() ; i++)
-        i->remove(&receiver);
+    requestsReceivers.remove(&receiver);
+}
+
+RequestReceiver *SocketHandler::getReceiverById(const quint32 &receiverId)
+{
+    std::list<RequestReceiver*>::iterator i;
+    for (i = requestsReceivers.begin() ; i != requestsReceivers.end() && (*i)->getReceiverId() != receiverId ; i++);
+    return ( i != requestsReceivers.end() ) ? *i : nullptr;
 }
 
 void SocketHandler::composeRequest(QByteArray &bytes)
@@ -99,13 +93,21 @@ void SocketHandler::composeRequest(QByteArray &bytes)
 void SocketHandler::wholeMsgComposed(Request& request)
 {
     //if request is recognized
-    if ( request.name < requestsReceivers.size() )
+    if ( request.name < Request::Count )
     {
-        //for all request receivers that listen to request.name code request
-        for (auto i = requestsReceivers[request.name].begin() ; i != requestsReceivers[request.name].end() ; i++)
+        //if it's socket handler created by server, redirect request to tcpServer RequestReceiver
+        if (serverSide)
+            requestsReceivers.front()->onDataReceived(request, this);
+        else
         {
-            //redirect request's data to appropriate instance of RequestReceiver class
-            (*i)->onDataReceived(request, this);
+            //get RequestReceiver instance that sent that request
+            RequestReceiver* receiver = getReceiverById(request.receiverId);
+            //if receiver was found
+            if (receiver != nullptr)
+            {
+                //redirect request's data to that sender
+                receiver->onDataReceived(request, this);
+            }
         }
     }
     else
@@ -128,9 +130,9 @@ void SocketHandler::onReadyRead()
 {
     //append read bytes to buffer which compose all message's chunks after each ready read occurs
     msgBuffer.append( socket.readAll() );
+
     //read each request
-    //end loop when buffer is empty all there isn't enough bytes to read request's size
-    while ( msgBuffer.size() >= 4 )
+    while (msgBuffer.size())
     {
         //initialize serialization object
         QDataStream msgStream(&msgBuffer, QIODevice::ReadOnly);
@@ -139,18 +141,16 @@ void SocketHandler::onReadyRead()
         quint32 msgSize;
         msgStream >> msgSize;
 
-        //if size couldn't be read, dont't react to request
+        //if size of the message isn't available, exit
         if ( msgStream.status() == QDataStream::ReadCorruptData )
-        {
-            msgBuffer.clear();
             return;
-        }
 
         //if all request's chunks were sent
         if ( static_cast<quint32>(msgBuffer.size()) >= msgSize )
         {
             //read bytes of one request
-            QByteArray reqBytes = msgBuffer.mid(4, static_cast<int>(msgSize) - 4);
+            int streamPos = static_cast<int>(msgStream.device()->pos());
+            QByteArray reqBytes = msgBuffer.mid(streamPos, static_cast<int>(msgSize) - streamPos);
             //compose request object from those bytes and remove them from msgBuffer
             composeRequest(reqBytes);
             msgBuffer.remove(0, static_cast<int>(msgSize));

@@ -27,13 +27,12 @@ void AllPriceListsWidget::registerRequestsReceiver(SocketHandler *socketHandler)
 {
     RequestReceiver::registerRequestsReceiver(socketHandler);
 
-    socketHandler->addRequestReceiver(std::vector<Request::RequestName>{
-        Request::GET_ALL_PRICE_LISTS}, *this);
+    socketHandler->addRequestReceiver(*this);
 }
 
 void AllPriceListsWidget::sendGetAllPriceListsRequest()
 {
-    socketHandler.send( Request(Request::GET_ALL_PRICE_LISTS) );
+    socketHandler.send( Request(getReceiverId(), Request::GET_ALL_PRICE_LISTS) );
 }
 
 void AllPriceListsWidget::onGetAllPriceListsResponse(Request& req)
