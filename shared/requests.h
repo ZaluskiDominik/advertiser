@@ -26,6 +26,7 @@ public:
         DELETE_USER,
         GET_ACTIVE_PRICE_LIST,
         GET_ALL_PRICE_LISTS,
+        CHANGE_ACTIVE_PRICE_LIST,
 
         //element used to retrieve number of requests, it's not a request!
         Count

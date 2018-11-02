@@ -57,7 +57,8 @@ void TcpServer::initResponsesToRequests()
         &TcpServer::onGetAllUsersData,
         &TcpServer::onDeleteUserRequest,
         &TcpServer::onGetActivePriceList,
-        &TcpServer::onGetAllPriceListsRequest
+        &TcpServer::onGetAllPriceListsRequest,
+        &TcpServer::onChangeActivePriceListRequest
     };
 }
 
@@ -375,4 +376,30 @@ void TcpServer::onGetAllPriceListsRequest(Request &req, SocketHandler *socketHan
         out << priceLists;
         socketHandler->send( Request(req.name, bytes, Request::OK) );
     }
+}
+
+void TcpServer::onChangeActivePriceListRequest(Request &req, SocketHandler *socketHandler)
+{
+    DBManager db;
+
+    //if db isn't open send error response
+    if ( !db.isOpen() )
+    {
+        socketHandler->send( Request(req.name, Request::ERROR) );
+        return;
+    }
+
+    QDataStream in(&req.data, QIODevice::ReadOnly);
+    quint32 priceListId;
+    in >> priceListId;
+
+    //run query setting price list with priceListId as active
+    QSqlQuery* query = db.prepare("UPDATE active_price_list SET price_list_id = ?");
+    query->addBindValue(priceListId);
+    query->exec();
+    qDebug() << query->isActive();
+
+    //if query failed to execute, send error status, else send ok status
+    Request::RequestStatus status = ( query->isActive() ) ? Request::OK : Request::ERROR;
+    socketHandler->send( Request(req.name, status) );
 }

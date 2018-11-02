@@ -20,6 +20,9 @@ PriceListWidget::PriceListWidget(const PriceList &prices, bool _readOnly, QWidge
     registerRequestsReceiver(&socketHandler);
     initTable();
 
+    //set price list's id
+    priceListId = prices.priceListId;
+
     convertPriceListToTableContent(prices);
 }
 
@@ -28,9 +31,27 @@ void PriceListWidget::getActivePriceList()
     sendGetActivePriceListRequest();
 }
 
+void PriceListWidget::setAssociatedTab(PriceListTab *tab)
+{
+    associatedTab = tab;
+}
+
+void PriceListWidget::setActive()
+{
+    //serialize price list's id
+    QByteArray data;
+    QDataStream ss(&data, QIODevice::WriteOnly);
+    ss << priceListId;
+
+    socketHandler.send( Request(Request::CHANGE_ACTIVE_PRICE_LIST, data) );
+}
+
 void PriceListWidget::onDataReceived(Request req, SocketHandler *)
 {
-    onGetActivePriceListResponse(req);
+    if (req.name == Request::GET_ACTIVE_PRICE_LIST)
+        onGetActivePriceListResponse(req);
+    else if (req.name == Request::CHANGE_ACTIVE_PRICE_LIST)
+        emit changeActiveResponse( associatedTab, req.status == Request::OK );
 }
 
 void PriceListWidget::registerRequestsReceiver(SocketHandler *socketHandler)
@@ -38,7 +59,7 @@ void PriceListWidget::registerRequestsReceiver(SocketHandler *socketHandler)
     RequestReceiver::registerRequestsReceiver(socketHandler);
 
     socketHandler->addRequestReceiver(std::vector<Request::RequestName>{
-                                          Request::GET_ACTIVE_PRICE_LIST}, *this);
+        Request::GET_ACTIVE_PRICE_LIST, Request::CHANGE_ACTIVE_PRICE_LIST}, *this);
 }
 
 void PriceListWidget::initTable()
@@ -48,6 +69,7 @@ void PriceListWidget::initTable()
     for (int i = 0 ; i < ui.tableWidget->columnCount() ; i++)
         ui.tableWidget->setColumnWidth(i, width() / 3);
 
+    //set table as read only if true was passed to constructor
     if (readOnly)
         ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 }
@@ -83,6 +105,9 @@ void PriceListWidget::onGetActivePriceListResponse(Request &req)
     QDataStream ss(&req.data, QIODevice::ReadOnly);
     PriceList prices;
     ss >> prices;
+
+    //set price list's id
+    priceListId = prices.priceListId;
 
     convertPriceListToTableContent(prices);
 }

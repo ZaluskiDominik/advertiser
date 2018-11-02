@@ -129,7 +129,8 @@ void SocketHandler::onReadyRead()
     //append read bytes to buffer which compose all message's chunks after each ready read occurs
     msgBuffer.append( socket.readAll() );
     //read each request
-    while (msgBuffer.size())
+    //end loop when buffer is empty all there isn't enough bytes to read request's size
+    while ( msgBuffer.size() >= 4 )
     {
         //initialize serialization object
         QDataStream msgStream(&msgBuffer, QIODevice::ReadOnly);

@@ -76,6 +76,8 @@ private:
     //client requests data about all available price lists
     void onGetAllPriceListsRequest(Request& req, SocketHandler* socketHandler);
 
+    //client requested the change of currently active price list
+    void onChangeActivePriceListRequest(Request& req, SocketHandler* socketHandler);
 };
 
 //container for strorig user's socketHandler and id

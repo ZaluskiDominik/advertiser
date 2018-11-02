@@ -61,6 +61,11 @@ void AllPriceListsWidget::addNewPriceList(PriceList &prices)
     ui.stackedWidget->addWidget(listWidget);
     //tab corresponding to this price list
     PriceListTab* listTab = new PriceListTab(listWidget, this);
+    listWidget->setAssociatedTab(listTab);
+
+    //connect to signals
+    connectToTabsSignals(listTab);
+    connectToPriceListSignals(listWidget);
 
     //remove addNewTab tab and space filler first
     ui.tabsLayout->removeItem(ui.spaceFiller);
@@ -70,14 +75,69 @@ void AllPriceListsWidget::addNewPriceList(PriceList &prices)
     ui.tabsLayout->addWidget(listTab);
     //set tab's name
     listTab->setText( "Cennik" + QString::number( prices.priceListId ) );
-    //if price list is active, set tab's style to active and set it as default widget in stacked widget
+    //if price list is active, set tab's style to active and set it as current widget in stacked widget
     if (prices.isActive)
     {
-       listTab->setActiveStyle();
+       PriceListTab::activeTab = PriceListTab::selectedTab = listTab;
+       listTab->selectTab();
+       listTab->setActiveTab();
        ui.stackedWidget->setCurrentWidget(listWidget);
     }
 
     //restore addNewTab tab and space filler
     ui.tabsLayout->addWidget(ui.addNewTab);
     ui.tabsLayout->addItem(ui.spaceFiller);
+}
+
+void AllPriceListsWidget::connectToTabsSignals(PriceListTab* tab)
+{
+    //clicked signal
+    QObject::connect(tab, SIGNAL(clicked(PriceListTab*)), this, SLOT(onTabClicked(PriceListTab*)));
+
+    //context menu signals
+    QObject::connect(tab, SIGNAL(removeClicked(PriceListWidget*)), this, SLOT(onRemovePriceListClicked(PriceListWidget*)));
+    QObject::connect(tab, SIGNAL(saveChangesClicked(PriceListWidget*)), this, SLOT(onSavePriceListClicked(PriceListWidget*)));
+    QObject::connect(tab, SIGNAL(setActiveClicked(PriceListWidget*)), this, SLOT(onSetActivePriceListClicked(PriceListWidget*)));
+}
+
+void AllPriceListsWidget::connectToPriceListSignals(PriceListWidget *priceList)
+{
+    QObject::connect(priceList, SIGNAL(changeActiveResponse(PriceListTab*, bool)), this, SLOT(onSetActiveResponse(PriceListTab*, bool)));
+}
+
+void AllPriceListsWidget::onTabClicked(PriceListTab *tab)
+{
+    //if it's not already selected tab, then select it
+    if (tab != PriceListTab::selectedTab)
+    {
+        tab->selectTab();
+        ui.stackedWidget->setCurrentWidget(tab->target);
+    }
+}
+
+void AllPriceListsWidget::onRemovePriceListClicked(PriceListWidget *priceList)
+{
+
+}
+
+void AllPriceListsWidget::onSavePriceListClicked(PriceListWidget *priceList)
+{
+
+}
+
+void AllPriceListsWidget::onSetActivePriceListClicked(PriceListWidget *priceList)
+{
+    priceList->setActive();
+}
+
+void AllPriceListsWidget::onSetActiveResponse(PriceListTab *tab, bool success)
+{
+    //if any errors accured
+    if ( !success )
+    {
+        QMessageBox::warning(this, "Błąd", "Nie udało się zmienić aktywnego cennika!");
+        return;
+    }
+
+    tab->setActiveTab();
 }
