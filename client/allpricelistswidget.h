@@ -29,7 +29,7 @@ private:
     void onGetAllPriceListsResponse(Request& req);
 
     //adds new table with price list data to stacled widget and a tab corresponding to that price list
-    void addNewPriceList(PriceList& prices);
+    void addPriceList(PriceList& prices);
 
     //connects to tab's context menu action's trigger signals and clicked signal
     void connectToTabsSignals(PriceListTab* tab);
@@ -48,8 +48,21 @@ private slots:
     //set a price list as active
     void onSetActivePriceListClicked(PriceListWidget* priceList);
 
+    //response to remove price list request
+    void onRemovePriceListResponse(PriceListTab* tab, bool success);
+    //response to save price list request
+    void onSavePriceListResponse(PriceListTab* tab, bool success);
     //response to requesting change of active price list
     void onSetActiveResponse(PriceListTab* tab, bool success);
+
+    //user clicked add new tab button, adds new empty price list
+    void on_addNewTab_clicked();
+
+    //price list's content was changed
+    void onPriceListModified();
+
+    //response to requesting creation of a new price list
+    void onAddNewPriceListResponse(Request& req);
 };
 
 #endif // ALLPRICELISTSWIDGET_H

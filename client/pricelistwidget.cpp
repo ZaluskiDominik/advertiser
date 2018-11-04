@@ -36,6 +36,16 @@ void PriceListWidget::setAssociatedTab(PriceListTab *tab)
     associatedTab = tab;
 }
 
+PriceListTab *PriceListWidget::getAssociatedTab()
+{
+    return associatedTab;
+}
+
+quint32 PriceListWidget::getPriceListId()
+{
+    return priceListId;
+}
+
 void PriceListWidget::setActive()
 {
     //serialize price list's id
@@ -46,12 +56,55 @@ void PriceListWidget::setActive()
     socketHandler.send( Request(getReceiverId(), Request::CHANGE_ACTIVE_PRICE_LIST, data) );
 }
 
-void PriceListWidget::onDataReceived(Request req, SocketHandler *)
+void PriceListWidget::remove()
 {
-    if (req.name == Request::GET_ACTIVE_PRICE_LIST)
+    QByteArray data;
+    QDataStream ss(&data, QIODevice::WriteOnly);
+    ss << priceListId;
+
+    socketHandler.send( Request(getReceiverId(), Request::REMOVE_PRICE_LIST, data) );
+}
+
+void PriceListWidget::save()
+{
+    QByteArray data;
+    QDataStream ss(&data, QIODevice::WriteOnly);
+
+    //convert all table fields' data to PriceList object, which will be send to server
+    PriceList prices = convertTableContentToPriceList();
+    ss << prices;
+
+    socketHandler.send( Request(getReceiverId(), Request::SAVE_PRICE_LIST, data) );
+}
+
+QString PriceListWidget::convertToTime(int minutes)
+{
+    QString hour = QString::number( int(minutes / 60) );
+    QString min = QString::number( minutes % 60 );
+
+    //add leading zero
+    min = ( min.size() == 1 ) ? "0" + min : min;
+    hour = ( hour.size() == 1 ) ? "0" + hour : hour;
+    return hour + ":" + min;
+}
+
+void PriceListWidget::onDataReceived(Request req, SocketHandler *)
+{   
+    switch (req.name)
+    {
+    case Request::GET_ACTIVE_PRICE_LIST:
         onGetActivePriceListResponse(req);
-    else if (req.name == Request::CHANGE_ACTIVE_PRICE_LIST)
+        break;
+    case Request::CHANGE_ACTIVE_PRICE_LIST:
         emit changeActiveResponse( associatedTab, req.status == Request::OK );
+        break;
+    case Request::REMOVE_PRICE_LIST:
+        emit removePriceListResponse( associatedTab, req.status == Request::OK );
+        break;
+    case Request::SAVE_PRICE_LIST:
+        emit savePriceListResponse( associatedTab, req.status == Request::OK );
+        break;
+    }
 }
 
 void PriceListWidget::registerRequestsReceiver(SocketHandler *socketHandler)
@@ -71,6 +124,11 @@ void PriceListWidget::initTable()
     //set table as read only if true was passed to constructor
     if (readOnly)
         ui.tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    else
+    {
+        //propagate table's content changed signal
+        QObject::connect(ui.tableWidget, SIGNAL(cellChanged(int, int)), this, SIGNAL(priceListModified()));
+    }
 }
 
 void PriceListWidget::convertPriceListToTableContent(const PriceList &prices)
@@ -81,15 +139,51 @@ void PriceListWidget::convertPriceListToTableContent(const PriceList &prices)
     //add rows
     for (int i = 0 ; i < prices.rows.size() ; i++)
     {
-        ui.tableWidget->setItem(i, 0, new QTableWidgetItem( prices.rows[i].hours ));
-        ui.tableWidget->setItem(i, 1, new QTableWidgetItem( QString::number(prices.rows[i].weekPrice)) );
-        ui.tableWidget->setItem(i, 2, new QTableWidgetItem( QString::number(prices.rows[i].weekendPrice)) );
+        //add hours field
+        auto hours = new QTableWidgetItem(prices.rows[i].hours);
+        setItemReadOnly(hours);
+        ui.tableWidget->setItem(i, 0, hours);
+
+        //add prices fields
+        auto weekPrice = new QTableWidgetItem( QString::number(prices.rows[i].weekPrice));
+        ui.tableWidget->setItem(i, 1, weekPrice);
+        auto weekendPrice = new QTableWidgetItem( QString::number(prices.rows[i].weekendPrice));
+        ui.tableWidget->setItem(i, 2, weekendPrice);
+
+        //if table is read only make price fileds not selectable or editable
+        if (readOnly)
+        {
+            setItemReadOnly(weekPrice);
+            setItemReadOnly(weekendPrice);
+        }
     }
+}
+
+PriceList PriceListWidget::convertTableContentToPriceList()
+{
+    PriceList list;
+    list.priceListId = priceListId;
+
+    for (int i = 0 ; i < ui.tableWidget->rowCount() ; i++)
+    {
+        PriceListRow row;
+        row.hours = ui.tableWidget->item(i, 0)->text();
+        row.weekPrice = ui.tableWidget->item(i, 1)->text().toUInt();
+        row.weekendPrice = ui.tableWidget->item(i, 2)->text().toUInt();
+        list.rows.append(row);
+    }
+
+    return list;
 }
 
 void PriceListWidget::sendGetActivePriceListRequest()
 {
     socketHandler.send( Request(getReceiverId(), Request::GET_ACTIVE_PRICE_LIST) );
+}
+
+void PriceListWidget::setItemReadOnly(QTableWidgetItem *item)
+{
+    item->setFlags( item->flags() & ~(Qt::ItemIsEditable | Qt::ItemIsSelectable) );
 }
 
 void PriceListWidget::onGetActivePriceListResponse(Request &req)

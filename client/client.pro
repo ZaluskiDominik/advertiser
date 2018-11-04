@@ -43,7 +43,8 @@ SOURCES += \
     ../shared/pricelist.cpp \
     pricelistwidget.cpp \
     allpricelistswidget.cpp \
-    pricelisttab.cpp
+    pricelisttab.cpp \
+    adstableitem.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -63,7 +64,8 @@ HEADERS += \
     ../shared/pricelist.h \
     pricelistwidget.h \
     allpricelistswidget.h \
-    pricelisttab.h
+    pricelisttab.h \
+    adstableitem.h
 
 FORMS += \
         mainwindow.ui \

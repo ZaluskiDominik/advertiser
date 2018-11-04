@@ -51,7 +51,7 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="resources.qrc">:/img/img/login_monitor.png</pixmap>
+      <pixmap resource="resources.qrc">:/img/img/login_logo.png</pixmap>
      </property>
      <property name="scaledContents">
       <bool>true</bool>
@@ -76,6 +76,12 @@
    </item>
    <item>
     <widget class="QGroupBox" name="groupBox">
+     <property name="minimumSize">
+      <size>
+       <width>250</width>
+       <height>0</height>
+      </size>
+     </property>
      <property name="title">
       <string/>
      </property>

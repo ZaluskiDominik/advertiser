@@ -136,13 +136,22 @@ padding: 4px 0 6px 0;</string>
            <height>50</height>
           </size>
          </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="styleSheet">
           <string notr="true">font-size: 18px;
 font-weight: bold;
-color: #444;</string>
+color: #333;</string>
          </property>
          <property name="text">
           <string>Reklamodawcy</string>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -160,13 +169,22 @@ color: #444;</string>
            <height>50</height>
           </size>
          </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="styleSheet">
           <string notr="true">font-size: 18px;
 font-weight: bold;
-color: #444;</string>
+color: #333;</string>
          </property>
          <property name="text">
           <string>Cenniki</string>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -184,13 +202,22 @@ color: #444;</string>
            <height>50</height>
           </size>
          </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="styleSheet">
           <string notr="true">font-size: 18px;
 font-weight: bold;
-color: #444;</string>
+color: #333;</string>
          </property>
          <property name="text">
           <string>PushButton</string>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
          </property>
         </widget>
        </item>

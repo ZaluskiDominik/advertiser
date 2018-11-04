@@ -22,9 +22,6 @@ public:
     //whether a connection to database was opened successfully
     bool isOpen();
 
-    //get last error message
-    QString lastError();
-
 private:
     QSqlDatabase db;
     bool isDbOpen = false;

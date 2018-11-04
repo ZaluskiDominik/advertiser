@@ -11,7 +11,7 @@ QString PriceListTab::defaultStyle = QString("padding: 6px 10px 6px 10px; backgr
         "font-size: 15px;";
 
 QString PriceListTab::activeTabStyle = PriceListTab::defaultStyle + "background-color: lightgreen !important;";
-QString PriceListTab::currentTabStyle = "border: 1px solid lightblue !important; font-weight: bold";
+QString PriceListTab::currentTabStyle = "border: 1px solid blue !important; font-weight: bold";
 
 PriceListTab::PriceListTab(PriceListWidget* tabTarget, QWidget *parent)
     :QLabel(parent), target(tabTarget)
@@ -19,6 +19,7 @@ PriceListTab::PriceListTab(PriceListWidget* tabTarget, QWidget *parent)
     setStyleSheet(defaultStyle);
     initContextMenuActionsNames();
     initSignals();
+    setCursor(Qt::PointingHandCursor);
 }
 
 void PriceListTab::setActiveTab()

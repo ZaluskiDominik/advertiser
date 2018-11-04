@@ -1,5 +1,4 @@
 #include "dbmanager.h"
-#include <QSqlError>
 #include <QStringList>
 
 DBManager::DBManager()
@@ -49,9 +48,4 @@ int DBManager::rowCount(QSqlQuery* q)
 bool DBManager::isOpen()
 {
     return isDbOpen;
-}
-
-QString DBManager::lastError()
-{
-    return db.lastError().text();
 }

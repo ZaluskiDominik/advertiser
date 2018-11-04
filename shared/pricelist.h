@@ -7,8 +7,8 @@
 struct PriceListRow
 {
     QString hours;
-    quint32 weekPrice;
-    quint32 weekendPrice;
+    quint32 weekPrice = 0;
+    quint32 weekendPrice = 0;
 };
 
 QDataStream& operator<<(QDataStream& ss, const PriceListRow& row);

@@ -1,8 +1,9 @@
 <RCC>
     <qresource prefix="/img">
         <file>img/login_button.png</file>
-        <file>img/login_monitor.png</file>
         <file>img/logout.png</file>
         <file>img/profile.png</file>
+        <file>img/login_logo.png</file>
+        <file>img/add.png</file>
     </qresource>
 </RCC>

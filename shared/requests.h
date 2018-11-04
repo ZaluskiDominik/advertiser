@@ -27,6 +27,9 @@ public:
         GET_ACTIVE_PRICE_LIST,
         GET_ALL_PRICE_LISTS,
         CHANGE_ACTIVE_PRICE_LIST,
+        REMOVE_PRICE_LIST,
+        SAVE_PRICE_LIST,
+        ADD_NEW_PRICE_LIST,
 
         //element used to retrieve number of requests, it's not a request!
         Count

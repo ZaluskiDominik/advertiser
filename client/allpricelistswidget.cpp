@@ -21,6 +21,8 @@ void AllPriceListsWidget::onDataReceived(Request req, SocketHandler *)
 {
     if (req.name == Request::GET_ALL_PRICE_LISTS)
         onGetAllPriceListsResponse(req);
+    else if (req.name == Request::ADD_NEW_PRICE_LIST)
+        onAddNewPriceListResponse(req);
 }
 
 void AllPriceListsWidget::registerRequestsReceiver(SocketHandler *socketHandler)
@@ -50,10 +52,10 @@ void AllPriceListsWidget::onGetAllPriceListsResponse(Request& req)
     ss >> priceLists;
 
     for (auto i = priceLists.begin() ; i != priceLists.end() ; i++)
-        addNewPriceList(*i);
+        addPriceList(*i);
 }
 
-void AllPriceListsWidget::addNewPriceList(PriceList &prices)
+void AllPriceListsWidget::addPriceList(PriceList &prices)
 {
     //widget with table that contains price list's data
     PriceListWidget* listWidget = new PriceListWidget(prices, false, ui.stackedWidget);
@@ -101,7 +103,13 @@ void AllPriceListsWidget::connectToTabsSignals(PriceListTab* tab)
 
 void AllPriceListsWidget::connectToPriceListSignals(PriceListWidget *priceList)
 {
+    //change active price list, remove price list and save price list responses
     QObject::connect(priceList, SIGNAL(changeActiveResponse(PriceListTab*, bool)), this, SLOT(onSetActiveResponse(PriceListTab*, bool)));
+    QObject::connect(priceList, SIGNAL(removePriceListResponse(PriceListTab*, bool)), this, SLOT(onRemovePriceListResponse(PriceListTab*, bool)));
+    QObject::connect(priceList, SIGNAL(savePriceListResponse(PriceListTab*, bool)), this, SLOT(onSavePriceListResponse(PriceListTab*, bool)));
+
+    //price list modified signal
+    QObject::connect(priceList, SIGNAL(priceListModified()), this, SLOT(onPriceListModified()));
 }
 
 void AllPriceListsWidget::onTabClicked(PriceListTab *tab)
@@ -116,17 +124,53 @@ void AllPriceListsWidget::onTabClicked(PriceListTab *tab)
 
 void AllPriceListsWidget::onRemovePriceListClicked(PriceListWidget *priceList)
 {
-
+    priceList->remove();
 }
 
 void AllPriceListsWidget::onSavePriceListClicked(PriceListWidget *priceList)
 {
-
+    //if there were any changes in price list to save
+    if ( priceList->getAssociatedTab()->text().back() == '*' )
+        priceList->save();
 }
 
 void AllPriceListsWidget::onSetActivePriceListClicked(PriceListWidget *priceList)
 {
     priceList->setActive();
+}
+
+void AllPriceListsWidget::onRemovePriceListResponse(PriceListTab *tab, bool success)
+{
+    //if any errors occured
+    if ( !success )
+    {
+        QMessageBox::warning(this, "Błąd", "Nie udało się usunąć wybranego cennika!");
+        return;
+    }
+
+    //remove tab from layout
+    ui.tabsLayout->removeWidget(tab);
+    //remove price list widget from stacked widget and delete it
+    ui.stackedWidget->removeWidget(tab->target);
+    tab->target->deleteLater();
+    //delete tab
+    tab->deleteLater();
+
+    PriceListTab::selectedTab = static_cast<PriceListWidget*>(ui.stackedWidget->currentWidget())->getAssociatedTab();
+    PriceListTab::selectedTab->selectTab();
+}
+
+void AllPriceListsWidget::onSavePriceListResponse(PriceListTab *tab, bool success)
+{
+    //if any errors occured
+    if ( !success )
+    {
+        QMessageBox::warning(this, "Błąd", "Nie udało się zapisać zmian w wybranym cenniku!");
+        return;
+    }
+
+    //remove * from tab's name
+    tab->setText("Cennik" + QString::number(tab->target->getPriceListId()));
 }
 
 void AllPriceListsWidget::onSetActiveResponse(PriceListTab *tab, bool success)
@@ -139,4 +183,49 @@ void AllPriceListsWidget::onSetActiveResponse(PriceListTab *tab, bool success)
     }
 
     tab->setActiveTab();
+}
+
+void AllPriceListsWidget::on_addNewTab_clicked()
+{
+    PriceList list;
+    list.isActive = false;
+    int period = 30;
+
+    //create list of time periods
+    //prices will be set to 0
+    for (int min = 0 ; min < 24 * 60 ; min += period)
+    {
+        PriceListRow row;
+        row.hours = PriceListWidget::convertToTime(min) + "-" + PriceListWidget::convertToTime(min + period - 1);
+        list.rows.append(row);
+    }
+
+    QByteArray data;
+    QDataStream ss(&data, QIODevice::WriteOnly);
+    ss << list;
+
+    socketHandler.send( Request(getReceiverId(), Request::ADD_NEW_PRICE_LIST, data) );
+}
+
+void AllPriceListsWidget::onPriceListModified()
+{
+    PriceListTab* tab = qobject_cast<PriceListWidget*>(sender())->getAssociatedTab();
+    //mark tab as modified with *
+    tab->setText("Cennik" + QString::number(tab->target->getPriceListId()) + "*");
+}
+
+void AllPriceListsWidget::onAddNewPriceListResponse(Request &req)
+{
+    //if any errors occured
+    if (req.status == Request::ERROR)
+    {
+        QMessageBox::warning(this, "Błąd", "Nie udało się stworzyć nowego cennika!");
+        return;
+    }
+
+    QDataStream ss(&req.data, QIODevice::ReadOnly);
+    PriceList list;
+    ss >> list;
+
+    addPriceList(list);
 }

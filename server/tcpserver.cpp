@@ -58,7 +58,10 @@ void TcpServer::initResponsesToRequests()
         &TcpServer::onDeleteUserRequest,
         &TcpServer::onGetActivePriceList,
         &TcpServer::onGetAllPriceListsRequest,
-        &TcpServer::onChangeActivePriceListRequest
+        &TcpServer::onChangeActivePriceListRequest,
+        &TcpServer::onRemovePriceListRequest,
+        &TcpServer::onSavePriceListRequest,
+        &TcpServer::onAddNewPriceListRequest
     };
 }
 
@@ -259,9 +262,12 @@ void TcpServer::onDeleteUserRequest(Request &req, SocketHandler *socketHandler)
     in >> userId;
 
     //delete user with that id from db
-//    QSqlQuery* query
+    QSqlQuery* query = db.prepare("DELETE FROM users WHERE id = ?");
+    query->addBindValue(userId);
+    query->exec();
 
-    socketHandler->send( Request(req.receiverId, req.name, Request::OK) );
+    Request::RequestStatus status = ( query->isActive() ) ? Request::OK : Request::ERROR;
+    socketHandler->send( Request(req.receiverId, req.name, status) );
 }
 
 void TcpServer::onGetActivePriceList(Request &req, SocketHandler *socketHandler)
@@ -385,12 +391,127 @@ void TcpServer::onChangeActivePriceListRequest(Request &req, SocketHandler *sock
     in >> priceListId;
 
     //run query setting price list with priceListId as active
-    QSqlQuery* query = db.prepare("UPDATE active_price_list SET price_list_id = ?");
+    QSqlQuery* query = db.prepare("UPDATE active_price_list SET list_id = ?");
     query->addBindValue(priceListId);
     query->exec();
-    qDebug() << query->isActive();
 
     //if query failed to execute, send error status, else send ok status
     Request::RequestStatus status = ( query->isActive() ) ? Request::OK : Request::ERROR;
     socketHandler->send( Request(req.receiverId, req.name, status) );
+}
+
+void TcpServer::onRemovePriceListRequest(Request &req, SocketHandler *socketHandler)
+{
+    DBManager db;
+
+    //if db isn't open send error response
+    if ( !db.isOpen() )
+    {
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
+        return;
+    }
+
+    QDataStream in(&req.data, QIODevice::ReadOnly);
+    quint32 priceListId;
+    in >> priceListId;
+
+    //run query deleting price list
+    QSqlQuery* query = db.prepare("DELETE FROM price_lists WHERE price_list_id = ?");
+    query->addBindValue(priceListId);
+    query->exec();
+
+    //if query failed to execute, send error status, else send ok status
+    Request::RequestStatus status = ( query->isActive() ) ? Request::OK : Request::ERROR;
+    socketHandler->send( Request(req.receiverId, req.name, status) );
+}
+
+void TcpServer::onSavePriceListRequest(Request &req, SocketHandler *socketHandler)
+{
+    DBManager db;
+
+    //if db isn't open send error response
+    if ( !db.isOpen() )
+    {
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
+        return;
+    }
+
+    QDataStream in(&req.data, QIODevice::ReadOnly);
+    PriceList prices;
+    in >> prices;
+
+    //prepare statement updating each row of price list that client want to modify
+    QSqlQuery* query = db.prepare(QString("UPDATE price_lists SET week_price = ?, weekend_price = ?") +
+        " WHERE price_list_id = ? AND hours = ?");
+
+    //execute that statement for each hours period
+    bool success = true;
+    for (auto i = prices.rows.begin() ; i != prices.rows.end() ; i++)
+    {
+        query->addBindValue(i->weekPrice);
+        query->addBindValue(i->weekendPrice);
+        query->addBindValue(prices.priceListId);
+        query->addBindValue(i->hours);
+        query->exec();
+        success &= query->isActive();
+    }
+
+    //if query failed to execute, send error status, else send ok status
+    Request::RequestStatus status = ( success ) ? Request::OK : Request::ERROR;
+    socketHandler->send( Request(req.receiverId, req.name, status) );
+}
+
+void TcpServer::onAddNewPriceListRequest(Request &req, SocketHandler *socketHandler)
+{
+    DBManager db;
+
+    //if db isn't open send error response
+    if ( !db.isOpen() )
+    {
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
+        return;
+    }
+
+    QDataStream in(&req.data, QIODevice::ReadOnly);
+    PriceList prices;
+    in >> prices;
+
+    //find max price list's id from db
+    QSqlQuery* query = db.query("SELECT MAX(price_list_id) FROM price_lists");
+    if ( !query->isActive() )
+    {
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
+        return;
+    }
+
+    //set id of new price list to found max id + 1
+    query->first();
+    int newPriceListId = query->value(0).toInt() + 1;
+
+    //insert new price list's values
+    query->prepare("INSERT INTO price_lists VALUES(null, ?, ?, ?, ?)");
+    for (auto i = prices.rows.begin() ; i != prices.rows.end() ; i++)
+    {
+        query->addBindValue(newPriceListId);
+        query->addBindValue(i->hours);
+        query->addBindValue(i->weekPrice);
+        query->addBindValue(i->weekendPrice);
+        query->exec();
+
+        if ( !query->isActive() )
+        {
+            query->prepare("DELETE FROM price_lists WHERE price_list_id = ?");
+            query->addBindValue(newPriceListId);
+            query->exec();
+
+            socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
+            return;
+        }
+    }
+
+    QByteArray bytes;
+    QDataStream out(&bytes, QIODevice::WriteOnly);
+    prices.priceListId = static_cast<quint32>(newPriceListId);
+    out << prices;
+    socketHandler->send( Request(req.receiverId, req.name, bytes, Request::OK) );
 }

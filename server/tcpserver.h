@@ -76,6 +76,15 @@ private:
 
     //client requested the change of currently active price list
     void onChangeActivePriceListRequest(Request& req, SocketHandler* socketHandler);
+
+    //client requested removal of a price list
+    void onRemovePriceListRequest(Request& req, SocketHandler* socketHandler);
+
+    //client requested savement od changes made to a price list
+    void onSavePriceListRequest(Request& req, SocketHandler* socketHandler);
+
+    //client wants to create a new price list
+    void onAddNewPriceListRequest(Request& req, SocketHandler* socketHandler);
 };
 
 //container for strorig user's socketHandler and id
