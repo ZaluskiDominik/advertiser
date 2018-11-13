@@ -44,7 +44,14 @@ SOURCES += \
     pricelistwidget.cpp \
     allpricelistswidget.cpp \
     pricelisttab.cpp \
-    adstableitem.cpp
+    ../shared/adinfo.cpp \
+    adstablewidget.cpp \
+    ../shared/time.cpp \
+    adsdialog.cpp \
+    adscontainer.cpp \
+    adwidget.cpp \
+    hoverlabel.cpp \
+    adeditordialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -65,7 +72,14 @@ HEADERS += \
     pricelistwidget.h \
     allpricelistswidget.h \
     pricelisttab.h \
-    adstableitem.h
+    ../shared/adinfo.h \
+    adstablewidget.h \
+    ../shared/time.h \
+    adsdialog.h \
+    adscontainer.h \
+    adwidget.h \
+    hoverlabel.h \
+    adeditordialog.h
 
 FORMS += \
         mainwindow.ui \
@@ -75,7 +89,9 @@ FORMS += \
     admindialog.ui \
     userswidget.ui \
     pricelistwidget.ui \
-    allpricelistswidget.ui
+    allpricelistswidget.ui \
+    adsdialog.ui \
+    adeditordialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

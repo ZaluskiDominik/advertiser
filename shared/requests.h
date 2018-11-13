@@ -30,6 +30,10 @@ public:
         REMOVE_PRICE_LIST,
         SAVE_PRICE_LIST,
         ADD_NEW_PRICE_LIST,
+        GET_ADS,
+        ADD_NEW_AD,
+        MODIFY_AD,
+        REMOVE_AD,
 
         //element used to retrieve number of requests, it's not a request!
         Count

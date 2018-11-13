@@ -7,6 +7,7 @@ ColumnListWidgetField::ColumnListWidgetField(int _rowIndex, const QString &name,
 {
     setText(name);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    setMinimumHeight(30);
     initActions();
     initDefaultStyleSheet();
 }

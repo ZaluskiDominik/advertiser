@@ -86,6 +86,9 @@ border-right: none;</string>
        </item>
        <item>
         <widget class="QLineEdit" name="idEdit">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -102,7 +105,7 @@ border-right: none;</string>
           <font/>
          </property>
          <property name="styleSheet">
-          <string notr="true"/>
+          <string notr="true">background-color: #eee;</string>
          </property>
          <property name="maxLength">
           <number>30</number>
@@ -181,6 +184,9 @@ border-right: none;</string>
        </item>
        <item>
         <widget class="QLineEdit" name="loginEdit">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -197,7 +203,7 @@ border-right: none;</string>
           <font/>
          </property>
          <property name="styleSheet">
-          <string notr="true"/>
+          <string notr="true">background-color: #eee;</string>
          </property>
          <property name="maxLength">
           <number>30</number>

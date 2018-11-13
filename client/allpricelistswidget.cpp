@@ -2,6 +2,7 @@
 #include "ui_allpricelistswidget.h"
 #include "../shared/sockethandler.h"
 #include <QMessageBox>
+#include "../shared/time.h"
 
 extern SocketHandler socketHandler;
 
@@ -189,6 +190,7 @@ void AllPriceListsWidget::on_addNewTab_clicked()
 {
     PriceList list;
     list.isActive = false;
+    //duration in minutes of each hours period in row
     int period = 30;
 
     //create list of time periods
@@ -196,7 +198,7 @@ void AllPriceListsWidget::on_addNewTab_clicked()
     for (int min = 0 ; min < 24 * 60 ; min += period)
     {
         PriceListRow row;
-        row.hours = PriceListWidget::convertToTime(min) + "-" + PriceListWidget::convertToTime(min + period - 1);
+        row.hours = Time(min * 60) + "-" + Time( (min + period - 1) * 60 );
         list.rows.append(row);
     }
 

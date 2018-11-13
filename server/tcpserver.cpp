@@ -1,7 +1,8 @@
 #include "tcpserver.h"
 #include <QtDebug>
 #include <QVector>
-#include "dbmanager.h"
+#include "../shared/adinfo.h"
+#include "../shared/time.h"
 
 TcpServer::TcpServer(int _port, QObject* parent)
     :QTcpServer(parent)
@@ -45,13 +46,21 @@ void TcpServer::onUserDisconnected(SocketHandler *socketHandler)
 
 void TcpServer::onDataReceived(Request request, SocketHandler *sender)
 {
-    (this->*responsesToRequests[request.name])(request, sender);
+    DBManager db;
+    //if couldn't connect to db send error response to client
+    if ( !db.isOpen() )
+    {
+        sender->send( Request(request.receiverId, request.name, Request::ERROR) );
+        return;
+    }
+
+    (this->*responsesToRequests[request.name])(request, sender, db);
 }
 
 void TcpServer::initResponsesToRequests()
 {
     //list all callbacks in the same order as requests in requests.h are listed
-    responsesToRequests = std::vector< void (TcpServer::*)(Request&, SocketHandler*) >{
+    responsesToRequests = std::vector< void (TcpServer::*)(Request&, SocketHandler*, DBManager&) >{
         &TcpServer::onLoginAuthRequest,
         &TcpServer::onChangeUserDataRequest,
         &TcpServer::onGetAllUsersData,
@@ -61,7 +70,9 @@ void TcpServer::initResponsesToRequests()
         &TcpServer::onChangeActivePriceListRequest,
         &TcpServer::onRemovePriceListRequest,
         &TcpServer::onSavePriceListRequest,
-        &TcpServer::onAddNewPriceListRequest
+        &TcpServer::onAddNewPriceListRequest,
+        &TcpServer::onGetAdsRequest,
+        &TcpServer::onAddNewAdRequest
     };
 }
 
@@ -107,7 +118,7 @@ User &TcpServer::getUserBySocketHandler(SocketHandler *socketHandler)
 
 //RESPONSE TO REQUESTS
 
-void TcpServer::onLoginAuthRequest(Request &req, SocketHandler *socketHandler)
+void TcpServer::onLoginAuthRequest(Request &req, SocketHandler *socketHandler, DBManager& db)
 {
     User& user = getUserBySocketHandler(socketHandler);
 
@@ -115,14 +126,6 @@ void TcpServer::onLoginAuthRequest(Request &req, SocketHandler *socketHandler)
     QString login, password;
     QDataStream in(&req.data, QIODevice::ReadOnly);
     in >> login >> password;
-
-    DBManager db;
-    //if couldn't connect to db send error response to client
-    if ( !db.isOpen() )
-    {
-        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
-        return;
-    }
 
     //check in database if user with that credentials exists
     QSqlQuery* query = db.prepare(QString("SELECT * FROM users LEFT JOIN ") +
@@ -161,7 +164,7 @@ void TcpServer::sendLoginAuthResponse(quint32 receiverId, SocketHandler* socketH
     socketHandler->send( Request(receiverId, Request::LOGIN_AUTH, resp, Request::OK) );
 }
 
-void TcpServer::onChangeUserDataRequest(Request& req, SocketHandler* socketHandler)
+void TcpServer::onChangeUserDataRequest(Request& req, SocketHandler* socketHandler, DBManager& db)
 {
     User& user = getUserBySocketHandler(socketHandler);
 
@@ -174,7 +177,7 @@ void TcpServer::onChangeUserDataRequest(Request& req, SocketHandler* socketHandl
         stream >> userData;
 
         //if data was saved
-        if ( saveUserData(userData) )
+        if ( saveUserData(userData, db) )
         {
             //send to client updated user's data
             QByteArray outBuffer;
@@ -190,14 +193,8 @@ void TcpServer::onChangeUserDataRequest(Request& req, SocketHandler* socketHandl
     }
 }
 
-bool TcpServer::saveUserData(const UserData &userData)
+bool TcpServer::saveUserData(const UserData &userData, DBManager& db)
 {
-    DBManager db;
-
-    //if db isn't open send error response
-    if ( !db.isOpen() )
-        return false;
-
     //update user's data
     QSqlQuery* query = db.prepare(QString("UPDATE users SET name = ?, surname = ?, company_name = ?") +
         ", phone = ?, email = ? WHERE id = ?");
@@ -212,17 +209,8 @@ bool TcpServer::saveUserData(const UserData &userData)
     return query->isActive();
 }
 
-void TcpServer::onGetAllUsersData(Request &req, SocketHandler *socketHandler)
+void TcpServer::onGetAllUsersData(Request &req, SocketHandler *socketHandler, DBManager& db)
 {
-    DBManager db;
-
-    //if db isn't open send error response
-    if ( !db.isOpen() )
-    {
-        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
-        return;
-    }
-
     //get all records of users excluding admins
     QSqlQuery* query = db.query(QString("SELECT users.* FROM users LEFT JOIN admins ") +
         "ON admins.user_id = users.id WHERE admins.user_id IS NULL");
@@ -245,17 +233,8 @@ void TcpServer::onGetAllUsersData(Request &req, SocketHandler *socketHandler)
     }
 }
 
-void TcpServer::onDeleteUserRequest(Request &req, SocketHandler *socketHandler)
+void TcpServer::onDeleteUserRequest(Request &req, SocketHandler *socketHandler, DBManager& db)
 {
-    DBManager db;
-
-    //if db isn't open send error response
-    if ( !db.isOpen() )
-    {
-        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
-        return;
-    }
-
     //retrieve id of user that will be deleted
     QDataStream in(&req.data, QIODevice::ReadOnly);
     quint32 userId;
@@ -270,17 +249,8 @@ void TcpServer::onDeleteUserRequest(Request &req, SocketHandler *socketHandler)
     socketHandler->send( Request(req.receiverId, req.name, status) );
 }
 
-void TcpServer::onGetActivePriceList(Request &req, SocketHandler *socketHandler)
+void TcpServer::onGetActivePriceList(Request &req, SocketHandler *socketHandler, DBManager& db)
 {
-    DBManager db;
-
-    //if db isn't open send error response
-    if ( !db.isOpen() )
-    {
-        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
-        return;
-    }
-
     //get all data about active price list
     QSqlQuery* query = db.query(QString("SELECT p.*, a.list_id FROM price_lists AS p INNER JOIN active_price_list AS a ") +
         "ON a.list_id = p.price_list_id ORDER BY p.hours");
@@ -322,17 +292,8 @@ PriceList TcpServer::convertToPriceList(QSqlQuery *query)
     return prices;
 }
 
-void TcpServer::onGetAllPriceListsRequest(Request &req, SocketHandler *socketHandler)
+void TcpServer::onGetAllPriceListsRequest(Request &req, SocketHandler *socketHandler, DBManager& db)
 {
-    DBManager db;
-
-    //if db isn't open send error response
-    if ( !db.isOpen() )
-    {
-        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
-        return;
-    }
-
     //get all price lists' ids
     QSqlQuery* query = db.query("SELECT price_list_id FROM price_lists GROUP BY price_list_id");
 
@@ -375,17 +336,8 @@ void TcpServer::onGetAllPriceListsRequest(Request &req, SocketHandler *socketHan
     }
 }
 
-void TcpServer::onChangeActivePriceListRequest(Request &req, SocketHandler *socketHandler)
+void TcpServer::onChangeActivePriceListRequest(Request &req, SocketHandler *socketHandler, DBManager& db)
 {
-    DBManager db;
-
-    //if db isn't open send error response
-    if ( !db.isOpen() )
-    {
-        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
-        return;
-    }
-
     QDataStream in(&req.data, QIODevice::ReadOnly);
     quint32 priceListId;
     in >> priceListId;
@@ -400,17 +352,8 @@ void TcpServer::onChangeActivePriceListRequest(Request &req, SocketHandler *sock
     socketHandler->send( Request(req.receiverId, req.name, status) );
 }
 
-void TcpServer::onRemovePriceListRequest(Request &req, SocketHandler *socketHandler)
+void TcpServer::onRemovePriceListRequest(Request &req, SocketHandler *socketHandler, DBManager& db)
 {
-    DBManager db;
-
-    //if db isn't open send error response
-    if ( !db.isOpen() )
-    {
-        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
-        return;
-    }
-
     QDataStream in(&req.data, QIODevice::ReadOnly);
     quint32 priceListId;
     in >> priceListId;
@@ -425,17 +368,8 @@ void TcpServer::onRemovePriceListRequest(Request &req, SocketHandler *socketHand
     socketHandler->send( Request(req.receiverId, req.name, status) );
 }
 
-void TcpServer::onSavePriceListRequest(Request &req, SocketHandler *socketHandler)
+void TcpServer::onSavePriceListRequest(Request &req, SocketHandler *socketHandler, DBManager& db)
 {
-    DBManager db;
-
-    //if db isn't open send error response
-    if ( !db.isOpen() )
-    {
-        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
-        return;
-    }
-
     QDataStream in(&req.data, QIODevice::ReadOnly);
     PriceList prices;
     in >> prices;
@@ -461,17 +395,8 @@ void TcpServer::onSavePriceListRequest(Request &req, SocketHandler *socketHandle
     socketHandler->send( Request(req.receiverId, req.name, status) );
 }
 
-void TcpServer::onAddNewPriceListRequest(Request &req, SocketHandler *socketHandler)
+void TcpServer::onAddNewPriceListRequest(Request &req, SocketHandler *socketHandler, DBManager& db)
 {
-    DBManager db;
-
-    //if db isn't open send error response
-    if ( !db.isOpen() )
-    {
-        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
-        return;
-    }
-
     QDataStream in(&req.data, QIODevice::ReadOnly);
     PriceList prices;
     in >> prices;
@@ -514,4 +439,76 @@ void TcpServer::onAddNewPriceListRequest(Request &req, SocketHandler *socketHand
     prices.priceListId = static_cast<quint32>(newPriceListId);
     out << prices;
     socketHandler->send( Request(req.receiverId, req.name, bytes, Request::OK) );
+}
+
+void TcpServer::onGetAdsRequest(Request &req, SocketHandler *socketHandler, DBManager& db)
+{
+    //get all ads created for active price list
+    QSqlQuery* query = db.query(QString("SELECT ads.* FROM ads INNER JOIN active_price_list AS list") +
+        " ON list.list_id = ads.price_list_id");
+
+    //if query failed
+    if ( !query->isActive() )
+    {
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
+        return;
+    }
+
+    QVector<AdInfo> ads;
+    while (query->next())
+    {
+          AdInfo ad;
+          ad.adId = query->value(query->record().indexOf("id")).toUInt();
+          ad.ownerId = query->value(query->record().indexOf("user_id")).toUInt();
+          ad.startHour = Time( query->value(query->record().indexOf("start_hour")).toString() );
+          ad.endHour = Time( query->value( query->record().indexOf("end_hour")).toString() );
+          ad.weekDayNr = query->value(query->record().indexOf("week_day_nr")).toUInt();
+          ads.push_back(ad);
+    }
+
+    QByteArray bytes;
+    QDataStream out(&bytes, QIODevice::WriteOnly);
+    out << ads;
+
+    socketHandler->send( Request(req.receiverId, req.name, bytes, Request::OK) );
+}
+
+void TcpServer::adDataChangeHelper(Request &req, SocketHandler *socketHandler, QSqlQuery* query, bool newAd)
+{
+    QDataStream in(&req.data, QIODevice::ReadOnly);
+    quint32 userId;
+    in >> userId;
+    quint32 priceListId;
+    in >> priceListId;
+    AdInfo adInfo;
+    in >> adInfo;
+
+    //add values to prepared query passed by function parameter
+    query->addBindValue(userId);
+    query->addBindValue(adInfo.weekDayNr);
+    query->addBindValue(adInfo.startHour.getfullHour());
+    query->addBindValue(adInfo.endHour.getfullHour());
+    query->addBindValue(priceListId);
+
+    if ( !newAd )
+        query->addBindValue(adInfo.adId);
+
+    query->exec();
+
+    //prepare AdInfo object to send
+    if (newAd)
+        adInfo.adId = query->lastInsertId().toUInt();
+    QByteArray bytes;
+    QDataStream out(&bytes, QIODevice::WriteOnly);
+    out << adInfo;
+
+    //send response
+    Request::RequestStatus status = ( query->isActive() ) ? Request::OK : Request::ERROR;
+    socketHandler->send( Request(req.receiverId, req.name, bytes, status) );
+}
+
+void TcpServer::onAddNewAdRequest(Request &req, SocketHandler *socketHandler, DBManager& db)
+{
+    QSqlQuery* query = db.prepare("INSERT INTO ads VALUES(null, ?, ?, ?, ?, ?)");
+    adDataChangeHelper(req, socketHandler, query, true);
 }

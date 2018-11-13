@@ -8,6 +8,7 @@
 
 //global socketHandler to which all client request are registered
 SocketHandler socketHandler;
+
 //data of currently logged in user
 UserData user;
 
@@ -28,6 +29,7 @@ void MainWindow::initStackedWidget()
     //add login form
     ui.stackedWidget->addWidget(&loginWidget);
     QObject::connect(&loginWidget, SIGNAL(userLoggedIn()), this, SLOT(onUserLoggedIn()));
+
     //add main panel
     ui.stackedWidget->addWidget(&mainWidget);
 
@@ -48,6 +50,7 @@ void MainWindow::initMenu()
     QObject::connect(mainMenu, SIGNAL(profileClicked()), this, SLOT(onProfileClicked()));
     QObject::connect(mainMenu, SIGNAL(adminPanelClicked()), this, SLOT(onAdminPanelClicked()));
     QObject::connect(mainMenu, SIGNAL(priceListClicked()), this, SLOT(onPriceListClicked()));
+    QObject::connect(mainMenu, SIGNAL(adsEditorClicked()), this, SLOT(onAdsClicked()));
 }
 
 void MainWindow::initToolBarActions()
@@ -190,11 +193,17 @@ void MainWindow::onPriceListClicked()
     //create layout for dialog
     QHBoxLayout* priceLayout = new QHBoxLayout(priceDialog);
     priceLayout->addWidget( new PriceListWidget(true) );
-    priceLayout->setContentsMargins(0, 0, 0, 0);
+    priceLayout->setMargin(0);
 
     //resize dialog, apply layout and show everything on the screen
-    priceDialog->resize(800, 700);
-    priceDialog->setMinimumSize(500, 300);
+    priceDialog->setMinimumSize(700, 550);
     priceDialog->setLayout(priceLayout);
     priceDialog->show();
+}
+
+void MainWindow::onAdsClicked()
+{
+    adsDialog = new AdsDialog(this);
+    adsDialog->setAttribute(Qt::WA_DeleteOnClose);
+    adsDialog->show();
 }

@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "ui_loginwidget.h"
 #include "../shared/requestreceiver.h"
+#include "userdata.h"
 
 class LoginWidget : public QWidget, public RequestReceiver
 {

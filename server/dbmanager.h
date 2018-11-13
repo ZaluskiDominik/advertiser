@@ -23,7 +23,6 @@ public:
     bool isOpen();
 
 private:
-    QSqlDatabase db;
     bool isDbOpen = false;
 
     //object responsible for executing sql queries

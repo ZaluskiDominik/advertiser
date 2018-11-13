@@ -77,17 +77,6 @@ void PriceListWidget::save()
     socketHandler.send( Request(getReceiverId(), Request::SAVE_PRICE_LIST, data) );
 }
 
-QString PriceListWidget::convertToTime(int minutes)
-{
-    QString hour = QString::number( int(minutes / 60) );
-    QString min = QString::number( minutes % 60 );
-
-    //add leading zero
-    min = ( min.size() == 1 ) ? "0" + min : min;
-    hour = ( hour.size() == 1 ) ? "0" + hour : hour;
-    return hour + ":" + min;
-}
-
 void PriceListWidget::onDataReceived(Request req, SocketHandler *)
 {   
     switch (req.name)

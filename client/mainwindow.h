@@ -9,6 +9,7 @@
 #include "mainmenu.h"
 #include "admindialog.h"
 #include "pricelistwidget.h"
+#include "adsdialog.h"
 
 class MainWindow : public QMainWindow
 {
@@ -30,6 +31,8 @@ private:
     ProfileDialog* profileDialog;
     //admin's main panel
     AdminDialog* adminDialog;
+    //dialog with user's ads
+    AdsDialog* adsDialog;
 
     //action for toolbar's logout button
     QAction* logoutAction;
@@ -84,6 +87,9 @@ private slots:
 
     //price list menu was clicked, show price list
     void onPriceListClicked();
+
+    //ads menu was clicked, show list of ads
+    void onAdsClicked();
 };
 
 #endif // MAINWINDOW_H

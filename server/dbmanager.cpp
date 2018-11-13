@@ -3,9 +3,9 @@
 
 DBManager::DBManager()
 {
+    QSqlDatabase db;
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName("advertiser.db");
-
     //if couldn't connect with db
     if ( !db.open() )
     {
@@ -21,7 +21,8 @@ DBManager::DBManager()
 DBManager::~DBManager()
 {
     delete sqlQuery;
-    db.close();
+    QSqlDatabase::database(QSqlDatabase::defaultConnection).close();
+    QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
 }
 
 QSqlQuery *DBManager::query(const QString &query)

@@ -36,9 +36,6 @@ public:
     //requests from server savement of changes made to this price list
     void save();
 
-    //returns time hh:mm converted from minutes
-    static QString convertToTime(int minutes);
-
 protected:
     void onDataReceived(Request req, SocketHandler*) final;
     void registerRequestsReceiver(SocketHandler* socketHandler) final;
