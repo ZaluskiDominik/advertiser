@@ -135,7 +135,9 @@ void AdsContainer::openAdDetails(AdWidget *targetAd)
     AdDetailsDialog* adDetails = new AdDetailsDialog(targetAd, this);
 
     adDetails->setAttribute(Qt::WA_DeleteOnClose);
-    adDetails->open();
+    adDetails->show();
+
+    QObject::connect(adDetails, SIGNAL(removedAd(AdWidget*)), this, SLOT(onRemovedAd(AdWidget*)));
 }
 
 void AdsContainer::onAdClicked(AdWidget *adWidget)
@@ -176,8 +178,12 @@ void AdsContainer::onModificatedAd(AdWidget *adWidget, Time startHour, Time endH
 
 void AdsContainer::onRemovedAd(AdWidget *adWidget)
 {
-    //emit signal informing that update of user's ads cost is needed
-    emit userAdsCostChanged( -adWidget->getAdCost() );
+    //if signal was emitted by AdEditor
+    if ( dynamic_cast<AdEditorDialog*>(sender()) )
+    {
+        //emit signal informing that update of user's ads cost is needed
+        emit userAdsCostChanged( -adWidget->getAdCost() );
+    }
 
     //remove ad
     removeAd(adWidget);

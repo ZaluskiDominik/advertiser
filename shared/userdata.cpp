@@ -21,6 +21,7 @@ UserData::UserData(const UserData &other)
 UserData &UserData::operator=(const UserData &other)
 {
     copyData(other);
+    return *this;
 }
 
 void UserData::copyData(const UserData &other)

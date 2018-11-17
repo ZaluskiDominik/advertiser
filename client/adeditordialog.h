@@ -4,10 +4,10 @@
 #include <QDialog>
 #include "ui_adeditordialog.h"
 #include "adwidget.h"
-#include "../shared/requestreceiver.h"
 #include "../shared/pricelist.h"
+#include "../shared/requestreceiver.h"
 
-class AdEditorDialog : public QDialog, RequestReceiver
+class AdEditorDialog : public QDialog, public RequestReceiver
 {
     Q_OBJECT
 
@@ -63,13 +63,6 @@ private:
     //returns avilable time left for ad
     int freeTimeForAd();
 
-private slots:    
-    //save button was clicked, save changes made to ad
-    void on_saveBtn_clicked();
-
-    //remove button was clicked, remove ad
-    void on_removeBtn_clicked();
-
     //response from server to requesting adding new ad
     void onAddNewAdResponse(Request& req);
 
@@ -78,6 +71,13 @@ private slots:
 
     //response from server to requesting removal of ad
     void onRemoveAdResponse(Request& req);
+
+private slots:    
+    //save button was clicked, save changes made to ad
+    void on_saveBtn_clicked();
+
+    //remove button was clicked, remove ad
+    void on_removeBtn_clicked();
 
     //start hour of an ad changed
     void on_startHour_editingFinished();
