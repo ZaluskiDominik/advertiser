@@ -2,13 +2,10 @@
 #define USERDATA_H
 
 #include <QDataStream>
-#include <QSqlQuery>
 
 class UserData
 {
 public:
-    UserData() = default;
-    UserData(QSqlQuery* query);
     quint32 id;
     QString login;
     QString name;
@@ -16,7 +13,16 @@ public:
     QString companyName;
     QString phone;
     QString email;
-    bool isAdmin;
+    bool isAdmin = false;
+
+    UserData() = default;
+    UserData(const UserData& other);
+    UserData& operator=(const UserData& other);
+
+private:
+    //copies data from other UserData object(excluding isAdmin var)
+    //used in copy constructor and assignment operator
+    void copyData(const UserData& other);
 };
 
 QDataStream& operator>>(QDataStream &stream, UserData &user);

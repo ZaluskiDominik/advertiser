@@ -1,7 +1,8 @@
 #include "adscontainer.h"
 #include <QPainter>
 #include <QMouseEvent>
-#include "userdata.h"
+#include "../shared/userdata.h"
+#include "addetailsdialog.h"
 
 const QColor AdsContainer::defaultBcg(240, 240, 240);
 const QColor AdsContainer::hoverColor(0, 250, 250, 40);
@@ -20,12 +21,11 @@ AdsContainer::AdsContainer(Time _minTime, Time _maxTime, int _weekDayNr, QWidget
 AdWidget *AdsContainer::addAd(AdInfo &ad, QColor adColor)
 {
     //find index where ad will be inserted
-    int i;
-    for (i = 0 ; i < ads.size() && ad.startHour > ads[i]->getAdInfo().startHour ; i++);
+    int adIndex = calculateAdIndex(ad.startHour);
 
     //insert ad to layout
     AdWidget* adWidget = new AdWidget(ad, adColor, ( user.isAdmin ) ? "Wyświetl szczegóły" : "Edytuj");
-    layout->insertWidget(i, adWidget);
+    layout->insertWidget(adIndex, adWidget);
 
     //connect to clicked signal
     QObject::connect(adWidget, SIGNAL(clicked(AdWidget*)), this, SLOT(onAdClicked(AdWidget*)));
@@ -34,7 +34,7 @@ AdWidget *AdsContainer::addAd(AdInfo &ad, QColor adColor)
     calculateAdHeight(adWidget);
 
     //add ad to vector of added ads
-    ads.insert(i, adWidget);
+    ads.insert(adIndex, adWidget);
 
     return adWidget;
 }
@@ -82,19 +82,42 @@ void AdsContainer::initLayout()
 void AdsContainer::connectToAdEditorSignals(AdEditorDialog* adEditor)
 {
     QObject::connect(adEditor, SIGNAL(addedNewAd(AdInfo, AdEditorDialog*)), this, SLOT(onAddedNewAd(AdInfo, AdEditorDialog*)));
+    QObject::connect(adEditor, SIGNAL(modificatedAd(AdWidget*, Time, Time)), this, SLOT(onModificatedAd(AdWidget*, Time, Time)));
     QObject::connect(adEditor, SIGNAL(removedAd(AdWidget*)), this, SLOT(onRemovedAd(AdWidget*)));
 }
 
 void AdsContainer::calculateAdHeight(AdWidget *ad)
 {
     const AdInfo& adInfo = ad->getAdInfo();
+    //set ad's height multiplying hight/seconds ration times ad's duration
     ad->setFixedHeight( static_cast<int>( AdWidget::getHeightToSecondsRatio() * adInfo.getDuration() ) );
+}
+
+int AdsContainer::calculateAdIndex(const Time& adStartTime)
+{
+    int i;
+    for (i = 0 ; i < ads.size() && adStartTime > ads[i]->getAdInfo().startHour ; i++);
+    return i;
+}
+
+void AdsContainer::repositionAd(AdWidget *ad)
+{
+    //remove ad from layout and ads vector
+    layout->removeWidget(ad);
+    ads.removeOne(ad);
+
+    //add ad to layout and ads vector in new position
+    int index = calculateAdIndex(ad->getAdInfo().startHour);
+    layout->insertWidget(index, ad);
+    ads.insert(index, ad);
 }
 
 void AdsContainer::openAdEditor(AdWidget* targetAd)
 {
     //create ad editor
     AdEditorDialog* addAd;
+
+    //if nullptr was passed, create ad editor for a new ad
     if (targetAd == nullptr)
         addAd = new AdEditorDialog(minTime, maxTime, ads, weekDayNr, this);
     else
@@ -107,21 +130,55 @@ void AdsContainer::openAdEditor(AdWidget* targetAd)
     connectToAdEditorSignals(addAd);
 }
 
+void AdsContainer::openAdDetails(AdWidget *targetAd)
+{
+    AdDetailsDialog* adDetails = new AdDetailsDialog(targetAd, this);
+
+    adDetails->setAttribute(Qt::WA_DeleteOnClose);
+    adDetails->open();
+}
+
 void AdsContainer::onAdClicked(AdWidget *adWidget)
 {
+    //if user is admin, open dialog with clicked ad's details
+    if ( user.isAdmin )
+        openAdDetails(adWidget);
     //if user isn't an admin, open editor for editing choosen ad
-    if ( !user.isAdmin )
+    else
         openAdEditor(adWidget);
 }
 
 void AdsContainer::onAddedNewAd(AdInfo adInfo, AdEditorDialog* adEditor)
 {
+    //add new ad
     AdWidget* newAd = addAd(adInfo, userAdColor);
     //set new ad as a target ad of sender AdEditorDialog object
     adEditor->setTargetAd(newAd);
+
+    //emit signal informing that update of user's ads cost is needed
+    emit userAdsCostChanged(newAd->getAdCost());
+}
+
+void AdsContainer::onModificatedAd(AdWidget *adWidget, Time startHour, Time endHour)
+{
+    double oldAdCost = adWidget->getAdCost();
+
+    //change adWidget's hours to this typed by user
+    adWidget->setHours(startHour, endHour);
+    //recalculate ad's height
+    calculateAdHeight(adWidget);
+    //reposition ad in ad container
+    repositionAd(adWidget);
+
+    //emit signal informing that update of user's ads cost is needed
+    emit userAdsCostChanged( adWidget->getAdCost() - oldAdCost );
 }
 
 void AdsContainer::onRemovedAd(AdWidget *adWidget)
 {
+    //emit signal informing that update of user's ads cost is needed
+    emit userAdsCostChanged( -adWidget->getAdCost() );
+
+    //remove ad
     removeAd(adWidget);
 }

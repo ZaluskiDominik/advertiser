@@ -23,9 +23,9 @@ protected:
     //invoked by socket handler when request/response is redirected to this class descendant
     virtual void onDataReceived(Request req, SocketHandler* sender) = 0;
 
-    //lists all requests that instance of descendant of this class will be listening to
-    //descendant class must implement this function and call default implemntation derivered from RequestReceiver
-    virtual void registerRequestsReceiver(SocketHandler* socketHandler) = 0;
+    //registers request receiver in givern socket handler
+    //RequestReceiver instance from that point can receive messages from that socket
+    void registerRequestsReceiver(SocketHandler* socketHandler);
 
 private:
     //value incremented when new RequestReceiver is created

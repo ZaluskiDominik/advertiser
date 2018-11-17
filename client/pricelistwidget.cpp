@@ -96,13 +96,6 @@ void PriceListWidget::onDataReceived(Request req, SocketHandler *)
     }
 }
 
-void PriceListWidget::registerRequestsReceiver(SocketHandler *socketHandler)
-{
-    RequestReceiver::registerRequestsReceiver(socketHandler);
-
-    socketHandler->addRequestReceiver(*this);
-}
-
 void PriceListWidget::initTable()
 {
     //set equal width of all columns

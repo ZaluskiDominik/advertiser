@@ -564,8 +564,11 @@ border-right: none;</string>
          <property name="font">
           <font/>
          </property>
+         <property name="inputMask">
+          <string>999999999</string>
+         </property>
          <property name="maxLength">
-          <number>30</number>
+          <number>9</number>
          </property>
         </widget>
        </item>

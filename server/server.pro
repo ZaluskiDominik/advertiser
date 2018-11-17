@@ -32,10 +32,10 @@ SOURCES += \
     ../shared/sockethandler.cpp \
     dbmanager.cpp \
     ../shared/requestreceiver.cpp \
-    userdata.cpp \
     ../shared/pricelist.cpp \
     ../shared/adinfo.cpp \
-    ../shared/time.cpp
+    ../shared/time.cpp \
+    ../shared/userdata.cpp
 
 HEADERS += \
         dialog.h \
@@ -44,10 +44,10 @@ HEADERS += \
     tcpserver.h \
     ../shared/requestreceiver.h \
     dbmanager.h \
-    userdata.h \
     ../shared/pricelist.h \
     ../shared/adinfo.h \
-    ../shared/time.h
+    ../shared/time.h \
+    ../shared/userdata.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

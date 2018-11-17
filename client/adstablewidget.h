@@ -14,12 +14,14 @@ public:
 
 protected:
     void onDataReceived(Request req, SocketHandler*) final;
-    void registerRequestsReceiver(SocketHandler* socketHandler) final;
 
 private:
     //colors for ads that belongs to user and for ads that are owned by other users
     const QColor usersAdColor = Qt::green;
     const QColor otherAdColor = Qt::gray;
+
+    //total cost of all user's ads
+    double userAdsCost = 0;
 
     //fixed height of each cell
     const int cellHeight = 180;
@@ -47,9 +49,11 @@ private:
     void sendGetAdsRequest();
     void onGetAdsResponse(Request& req);
 
-signals:
+private slots:
+    void onUserAdsCostChanged(double change);
 
-public slots:
+signals:
+    void userAdsCostChanged(double);
 };
 
 #endif // ADSTABLEWIDGET_H

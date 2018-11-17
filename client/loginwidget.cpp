@@ -1,6 +1,6 @@
 #include "loginwidget.h"
 #include "../shared/sockethandler.h"
-#include "userdata.h"
+#include "../shared/userdata.h"
 #include <QMessageBox>
 
 extern SocketHandler socketHandler;
@@ -16,13 +16,6 @@ LoginWidget::LoginWidget(QWidget *parent) :
 void LoginWidget::onDataReceived(Request req, SocketHandler *)
 {
     onLoginAuthResponse(req);
-}
-
-void LoginWidget::registerRequestsReceiver(SocketHandler *socketHandler)
-{
-    RequestReceiver::registerRequestsReceiver(socketHandler);
-
-    socketHandler->addRequestReceiver(*this);
 }
 
 void LoginWidget::on_pushButton_clicked()

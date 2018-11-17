@@ -114,11 +114,6 @@ void ProfileDialog::closeEvent(QCloseEvent *e)
 
 void ProfileDialog::onDataReceived(Request req, SocketHandler *)
 {
-    onChangeUserDataResponse(req);
-}
-
-void ProfileDialog::registerRequestsReceiver(SocketHandler *socketHandler)
-{
-    RequestReceiver::registerRequestsReceiver(socketHandler);
-    socketHandler->addRequestReceiver(*this);
+    if (req.name == Request::CHANGE_USER_DATA)
+        onChangeUserDataResponse(req);
 }

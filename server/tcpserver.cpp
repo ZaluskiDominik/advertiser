@@ -72,7 +72,9 @@ void TcpServer::initResponsesToRequests()
         &TcpServer::onSavePriceListRequest,
         &TcpServer::onAddNewPriceListRequest,
         &TcpServer::onGetAdsRequest,
-        &TcpServer::onAddNewAdRequest
+        &TcpServer::onAddNewAdRequest,
+        &TcpServer::onModifyAdRequest,
+        &TcpServer::onRemoveAdRequest
     };
 }
 
@@ -98,15 +100,6 @@ void TcpServer::incomingConnection(qintptr sockedId)
     QObject::connect(user->socketHandler, SIGNAL(disconnected(SocketHandler*)), this, SLOT(onUserDisconnected(SocketHandler*)));
     //add user to array
     users.push_back(user);
-}
-
-void TcpServer::registerRequestsReceiver(SocketHandler *socketHandler)
-{
-    //call parent's implementation of this function
-    RequestReceiver::registerRequestsReceiver(socketHandler);
-
-    //register that requests in socketHandler
-    socketHandler->addRequestReceiver(*this);
 }
 
 User &TcpServer::getUserBySocketHandler(SocketHandler *socketHandler)
@@ -143,8 +136,9 @@ void TcpServer::onLoginAuthRequest(Request &req, SocketHandler *socketHandler, D
         isAuth = true;
         query->first();
         //create container for user data which will be send to client
-        userData = UserData(query);
-        user.isAdmin = userData.isAdmin;
+        userData = convertToUserData(query);
+        //set flag whether user is an admin
+        user.isAdmin = userData.isAdmin = !( query->isNull( query->record().indexOf("user_id") ) );;
     }
 
     //send response to client
@@ -164,32 +158,38 @@ void TcpServer::sendLoginAuthResponse(quint32 receiverId, SocketHandler* socketH
     socketHandler->send( Request(receiverId, Request::LOGIN_AUTH, resp, Request::OK) );
 }
 
+UserData TcpServer::convertToUserData(QSqlQuery *query)
+{
+    UserData data;
+
+    data.id = query->value( query->record().indexOf("id") ).toUInt();
+    data.login = query->value( query->record().indexOf("login") ).toString();
+    data.name = query->value( query->record().indexOf("name") ).toString();
+    data.surname = query->value( query->record().indexOf("surname") ).toString();
+    data.companyName = query->value( query->record().indexOf("company_name") ).toString();
+    data.email = query->value( query->record().indexOf("email") ).toString();
+    data.phone = query->value( query->record().indexOf("phone") ).toString();
+
+    return data;
+}
+
 void TcpServer::onChangeUserDataRequest(Request& req, SocketHandler* socketHandler, DBManager& db)
 {
-    User& user = getUserBySocketHandler(socketHandler);
+    //retrieve data that will be updated in db
+    QDataStream stream(&req.data, QIODevice::ReadOnly);
+    UserData userData;
+    stream >> userData;
 
-    //check if request's sender has right to modify user's data(sender changes his own data or it's an admin)
-    if (user.socketHandler == socketHandler || user.isAdmin)
+    //if data was saved
+    if ( saveUserData(userData, db) )
     {
-        //retrieve data that will be updated in db
-        QDataStream stream(&req.data, QIODevice::ReadOnly);
-        UserData userData;
-        stream >> userData;
-
-        //if data was saved
-        if ( saveUserData(userData, db) )
-        {
-            //send to client updated user's data
-            QByteArray outBuffer;
-            QDataStream out(&outBuffer, QIODevice::WriteOnly);
-            out << userData;
-            socketHandler->send( Request(req.receiverId, req.name, outBuffer, Request::OK) );
-        }
-        else
-        {
-            //data could't be saved, send error response
-            socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
-        }
+        //send to client updated user's data
+        socketHandler->send( Request(req.receiverId, req.name, req.data, Request::OK) );
+    }
+    else
+    {
+        //data could't be saved, send error response
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
     }
 }
 
@@ -220,10 +220,10 @@ void TcpServer::onGetAllUsersData(Request &req, SocketHandler *socketHandler, DB
         socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
     else
     {
-        //query was successfull, create array with users' data
+        //query was successfull, create array holding users' data
         QVector<UserData> users;
         while ( query->next() )
-            users.push_back(UserData(query));
+            users.push_back( convertToUserData(query) );
 
         //send response containing users' data
         QByteArray bytes;
@@ -486,8 +486,8 @@ void TcpServer::adDataChangeHelper(Request &req, SocketHandler *socketHandler, Q
     //add values to prepared query passed by function parameter
     query->addBindValue(userId);
     query->addBindValue(adInfo.weekDayNr);
-    query->addBindValue(adInfo.startHour.getfullHour());
-    query->addBindValue(adInfo.endHour.getfullHour());
+    query->addBindValue(adInfo.startHour.getFullHour());
+    query->addBindValue(adInfo.endHour.getFullHour());
     query->addBindValue(priceListId);
 
     if ( !newAd )
@@ -511,4 +511,28 @@ void TcpServer::onAddNewAdRequest(Request &req, SocketHandler *socketHandler, DB
 {
     QSqlQuery* query = db.prepare("INSERT INTO ads VALUES(null, ?, ?, ?, ?, ?)");
     adDataChangeHelper(req, socketHandler, query, true);
+}
+
+void TcpServer::onModifyAdRequest(Request &req, SocketHandler *socketHandler, DBManager &db)
+{
+    QSqlQuery* query = db.prepare(QString("UPDATE ads SET user_id = ?, week_day_nr = ?, ") +
+        "start_hour = ?, end_hour = ?, price_list_id = ? WHERE id = ?");
+    adDataChangeHelper(req, socketHandler, query, false);
+}
+
+void TcpServer::onRemoveAdRequest(Request &req, SocketHandler *socketHandler, DBManager &db)
+{
+    //get id od ad that will be deleted
+    QDataStream in(&req.data, QIODevice::ReadOnly);
+    quint32 adId;
+    in >> adId;
+
+    //run query deleting ad
+    QSqlQuery* query = db.prepare("DELETE FROM ads WHERE id = ?");
+    query->addBindValue(adId);
+    query->exec();
+
+    //send response to client if removal was succesfull
+    Request::RequestStatus status = ( query->isActive() ) ? Request::OK : Request::ERROR;
+    socketHandler->send( Request(req.receiverId, req.name, status) );
 }

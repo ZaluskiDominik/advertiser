@@ -14,23 +14,12 @@ AllPriceListsWidget::AllPriceListsWidget(QWidget *parent)
     sendGetAllPriceListsRequest();
 }
 
-AllPriceListsWidget::~AllPriceListsWidget()
-{
-}
-
 void AllPriceListsWidget::onDataReceived(Request req, SocketHandler *)
 {
     if (req.name == Request::GET_ALL_PRICE_LISTS)
         onGetAllPriceListsResponse(req);
     else if (req.name == Request::ADD_NEW_PRICE_LIST)
         onAddNewPriceListResponse(req);
-}
-
-void AllPriceListsWidget::registerRequestsReceiver(SocketHandler *socketHandler)
-{
-    RequestReceiver::registerRequestsReceiver(socketHandler);
-
-    socketHandler->addRequestReceiver(*this);
 }
 
 void AllPriceListsWidget::sendGetAllPriceListsRequest()

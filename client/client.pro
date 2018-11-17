@@ -32,7 +32,6 @@ SOURCES += \
     ../shared/sockethandler.cpp \
     mainwidget.cpp \
     ../shared/requestreceiver.cpp \
-    userdata.cpp \
     profiledialog.cpp \
     mainmenu.cpp \
     admindialog.cpp \
@@ -51,7 +50,9 @@ SOURCES += \
     adscontainer.cpp \
     adwidget.cpp \
     hoverlabel.cpp \
-    adeditordialog.cpp
+    adeditordialog.cpp \
+    ../shared/userdata.cpp \
+    addetailsdialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -60,7 +61,6 @@ HEADERS += \
     ../shared/requests.h \
     ../shared/sockethandler.h \
     mainwidget.h \
-    userdata.h \
     profiledialog.h \
     mainmenu.h \
     admindialog.h \
@@ -79,7 +79,9 @@ HEADERS += \
     adscontainer.h \
     adwidget.h \
     hoverlabel.h \
-    adeditordialog.h
+    adeditordialog.h \
+    ../shared/userdata.h \
+    addetailsdialog.h
 
 FORMS += \
         mainwindow.ui \
@@ -91,7 +93,8 @@ FORMS += \
     pricelistwidget.ui \
     allpricelistswidget.ui \
     adsdialog.ui \
-    adeditordialog.ui
+    adeditordialog.ui \
+    addetailsdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

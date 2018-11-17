@@ -31,6 +31,7 @@ private:
     const static QColor defaultBcg;
     const static QColor hoverColor;
 
+    //nr of day in week when ad will be added
     int weekDayNr;
 
     //vertical layout for ads
@@ -51,8 +52,17 @@ private:
     //calculate ad's height according to height/seconds ratio
     void calculateAdHeight(AdWidget* ad);
 
+    //returns index where ad should be inserted according to ad's start hour
+    int calculateAdIndex(const Time &adStartTime);
+
+    //changes ad's position in container according to ad's start hour
+    void repositionAd(AdWidget* ad);
+
     //creates and opens AdEditorDalog object, if nullptr is passed then editor will be creating new ad
     void openAdEditor(AdWidget *targetAd);
+
+    //creates and opens AdDetailsDialog object
+    void openAdDetails(AdWidget* targetAd);
 
 private slots:
     //AdWidget was clicked
@@ -61,8 +71,14 @@ private slots:
     //user added new ad
     void onAddedNewAd(AdInfo adInfo, AdEditorDialog* adEditor);
 
-    //user remove ad
+    //ad's data was changed by user
+    void onModificatedAd(AdWidget* adWidget, Time startHour, Time endHour);
+
+    //user removed ad
     void onRemovedAd(AdWidget* adWidget);
+
+signals:
+    void userAdsCostChanged(double);
 };
 
 #endif // ADSCONTAINER_H

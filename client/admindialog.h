@@ -5,6 +5,7 @@
 #include "ui_admindialog.h"
 #include "userswidget.h"
 #include "allpricelistswidget.h"
+#include "adstablewidget.h"
 
 class AdminDialog : public QDialog
 {
@@ -18,6 +19,8 @@ private slots:
     void on_usersBtn_clicked();
     //price lists button clicked in side menu, show pricesWidget
     void on_priceListsBtn_clicked();
+    //ads table button clicked, show adsTableWidget
+    void on_adsBtn_clicked();
 
 private:
     Ui::AdminDialog ui;
@@ -30,6 +33,9 @@ private:
 
     //widget presenting all available price lists
     AllPriceListsWidget pricesWidget;
+
+    //widget with all user' ads
+    AdsTableWidget adsTableWidget;
 
     //*****************
 

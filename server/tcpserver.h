@@ -7,7 +7,7 @@
 #include "../shared/requests.h"
 #include "../shared/requestreceiver.h"
 #include "../shared/pricelist.h"
-#include "userdata.h"
+#include "../shared/userdata.h"
 #include "dbmanager.h"
 
 struct User;
@@ -27,9 +27,8 @@ private slots:
     void onUserDisconnected(SocketHandler* socketHandler);
 
 protected:
-    //overriden virtual function that receive request and invokes appropriate function handling that request
+    //overriden virtual function that receive request and invokes appropriate function handling that requests
     void onDataReceived(Request request, SocketHandler* sender) final;
-    void registerRequestsReceiver(SocketHandler* socketHandler) final;
 
 private:
     int port;
@@ -57,6 +56,8 @@ private:
     //send response if login was successfull
     void sendLoginAuthResponse(quint32 receiverId, SocketHandler *socketHandler, const UserData &userData, bool isAuth);
 
+    //returns UserData object converted from query records
+    UserData convertToUserData(QSqlQuery* query);
     //client wants to change his data, save changes in db
     void onChangeUserDataRequest(Request& req, SocketHandler* socketHandler, DBManager &db);
     //saves changes in user's data in db
@@ -93,7 +94,11 @@ private:
     void adDataChangeHelper(Request& req, SocketHandler* socketHandler, QSqlQuery* query, bool newAd);
     //user wants to add new ad
     void onAddNewAdRequest(Request& req, SocketHandler* socketHandler, DBManager& db);
+    //user wants to modify data of existing ad
+    void onModifyAdRequest(Request& req, SocketHandler* socketHandler, DBManager& db);
 
+    //client wants to remove one of his ads
+    void onRemoveAdRequest(Request& req, SocketHandler* socketHandler, DBManager& db);
 };
 
 //container for strorig user's socketHandler and id

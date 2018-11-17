@@ -15,23 +15,12 @@ UsersWidget::UsersWidget(QWidget *parent)
     requestGetAllUsersData();
 }
 
-UsersWidget::~UsersWidget()
-{
-}
-
 void UsersWidget::onDataReceived(Request req, SocketHandler*)
 {
     if (req.name == Request::GET_ALL_USERS_DATA)
         onGetAllUsersDataResponse(req);
     else if (req.name == Request::DELETE_USER)
         onDeleteUserResponse(req);
-}
-
-void UsersWidget::registerRequestsReceiver(SocketHandler *socketHandler)
-{
-    RequestReceiver::registerRequestsReceiver(socketHandler);
-
-    socketHandler->addRequestReceiver(*this);
 }
 
 void UsersWidget::initColumns()

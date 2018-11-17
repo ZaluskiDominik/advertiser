@@ -77,6 +77,15 @@ padding-right: 2px;
 background-color: lightgray;</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>1</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>2</number>
+       </property>
        <item alignment="Qt::AlignHCenter">
         <widget class="QLabel" name="label">
          <property name="sizePolicy">
@@ -189,7 +198,7 @@ color: #333;</string>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_3">
+        <widget class="QPushButton" name="adsBtn">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -214,7 +223,7 @@ font-weight: bold;
 color: #333;</string>
          </property>
          <property name="text">
-          <string>PushButton</string>
+          <string>Reklamy</string>
          </property>
          <property name="flat">
           <bool>false</bool>

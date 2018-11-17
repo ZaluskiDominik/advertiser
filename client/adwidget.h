@@ -13,13 +13,14 @@ class AdWidget : public HoverLabel
 public:
     explicit AdWidget(AdInfo& _info, QColor bcgColor, QString hoverText = "Edytuj", QWidget* parent = nullptr);
 
-    void setAdInfo(AdInfo& _ad);
+    //sets time boundaries of ad
+    void setHours(const Time& startHour, const Time& endHour);
 
     //returns information about ad
-    const AdInfo& getAdInfo();
+    const AdInfo& getAdInfo() const;
 
     //returns cost of this ad
-    double getAdCost();
+    double getAdCost() const;
 
     //static method calculating given ad's cost according to set price list
     static double calculateAdCost(Time startHour, Time endHour, int weekDayNr);
@@ -62,6 +63,9 @@ private:
 
     //height of add with duration 1s
     static qreal heightToSecondsRatio;
+
+    //calculates this ad's cost
+    void calculateCost();
 
 signals:
     void clicked(AdWidget*);

@@ -2,7 +2,7 @@
 #include "ui_mainwindow.h"
 #include <QDebug>
 #include "../shared/sockethandler.h"
-#include "userdata.h"
+#include "../shared/userdata.h"
 #include <QGraphicsDropShadowEffect>
 #include <QMessageBox>
 

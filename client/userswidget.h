@@ -6,7 +6,7 @@
 #include "columnlistwidget.h"
 #include <QHBoxLayout>
 #include "../shared/requestreceiver.h"
-#include "userdata.h"
+#include "../shared/userdata.h"
 
 class UsersWidget : public QWidget, public RequestReceiver
 {
@@ -14,11 +14,9 @@ class UsersWidget : public QWidget, public RequestReceiver
 
 public:
     explicit UsersWidget(QWidget *parent = nullptr);
-    ~UsersWidget();
 
 protected:
     void onDataReceived(Request req, SocketHandler*) final;
-    void registerRequestsReceiver(SocketHandler* socketHandler) final;
 
 private slots:
     //add new user button clicked

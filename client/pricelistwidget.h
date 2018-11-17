@@ -38,7 +38,6 @@ public:
 
 protected:
     void onDataReceived(Request req, SocketHandler*) final;
-    void registerRequestsReceiver(SocketHandler* socketHandler) final;
 
 signals:
     //signal emitted when response from server to change active price list request is received

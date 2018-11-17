@@ -1,5 +1,6 @@
 #include "adwidget.h"
 #include <QPainter>
+#include <cmath>
 
 const QColor AdWidget::hoverColor(QColor(211, 0, 211, 40));
 
@@ -20,50 +21,63 @@ AdWidget::AdWidget(AdInfo &_info, QColor bcgColor, QString hoverText, QWidget *p
     //set label with ad's time boundaries
     setText(info.startHour.getFullHour() + " - " + info.endHour.getFullHour());
 
-    //calculate this ad's cost
-    adCost = calculateAdCost(info.startHour, info.endHour, static_cast<int>(info.weekDayNr));
+    calculateCost();
 }
 
-void AdWidget::setAdInfo(AdInfo &_ad)
+void AdWidget::setHours(const Time &startHour, const Time &endHour)
 {
-    info = _ad;
+    info.startHour = startHour;
+    info.endHour = endHour;
+
+    //change hours shown by label
+    setText(startHour.getFullHour() + " - " + endHour.getFullHour());
+
+    //recalculate ad's cost
+    calculateCost();
 }
 
-const AdInfo& AdWidget::getAdInfo()
+const AdInfo& AdWidget::getAdInfo() const
 {
     return info;
 }
 
-double AdWidget::getAdCost()
+double AdWidget::getAdCost() const
 {
     return adCost;
 }
-
+#include <QDebug>
 double AdWidget::calculateAdCost(Time startHour, Time endHour, int weekDayNr)
 {
     double cost = 0;
+//    qDebug() << "hours: " << startHour.getFullHour() << "  " << endHour.getFullHour();
 
     QStringList priceListHours = priceList->rows[0].hours.split("-");
-    int priceListHoursDiff = ( Time(priceListHours[1]) - Time(priceListHours[0]) ).getSeconds();
+    int priceListHoursDiff = ( Time(priceListHours[1]) - Time(priceListHours[0]) + Time(60) ).getSeconds();
     int startIndex = startHour.getSeconds() / priceListHoursDiff;
 
+//    qDebug() << "start index: " << startIndex;
     int i = startIndex;
     Time priceListStartHour, priceListEndHour;
 
     do
     {
         priceListHours = priceList->rows[i].hours.split("-");
-        priceListStartHour = QString(priceListHours[0]) + ":59";
+        priceListStartHour = QString(priceListHours[0]) + ":00";
         priceListEndHour = QString(priceListHours[1]) + ":59";
 
-        int partDuration = std::min(priceListEndHour, endHour).getSeconds() - std::max(priceListStartHour, startHour).getSeconds() + 1;
+        int partDuration = ( std::min(priceListEndHour, endHour) - std::max(priceListStartHour, startHour) ).getSeconds() + 1;
+//        qDebug() << "end: " << std::min(priceListEndHour, endHour).getFullHour();
+//        qDebug() << "start: " << std::max(priceListStartHour, startHour).getFullHour();
+
+//        qDebug() << "part duration: " << partDuration;
         unsigned pricePerMinute = (weekDayNr >= 6) ? priceList->rows[i].weekendPrice : priceList->rows[i].weekPrice;
+//        qDebug() << "per minute: " << pricePerMinute;
         cost += static_cast<double>(partDuration) * static_cast<double>(pricePerMinute) / 60.0;
         i++;
     }
-    while( endHour >= priceListEndHour );
+    while( endHour > priceListEndHour );
 
-    return cost;
+    return std::round(cost * 100.0) / 100.0;
 }
 
 void AdWidget::setPriceList(const PriceList *list)
@@ -114,4 +128,9 @@ void AdWidget::paintEvent(QPaintEvent* e)
 void AdWidget::mousePressEvent(QMouseEvent*)
 {
     emit clicked(this);
+}
+
+void AdWidget::calculateCost()
+{
+    adCost = calculateAdCost(info.startHour, info.endHour, static_cast<int>(info.weekDayNr));
 }

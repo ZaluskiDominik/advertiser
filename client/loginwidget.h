@@ -4,7 +4,7 @@
 #include <QWidget>
 #include "ui_loginwidget.h"
 #include "../shared/requestreceiver.h"
-#include "userdata.h"
+#include "../shared/userdata.h"
 
 class LoginWidget : public QWidget, public RequestReceiver
 {
@@ -15,7 +15,6 @@ public:
 
 protected:
     void onDataReceived(Request req, SocketHandler*) final;
-    void registerRequestsReceiver(SocketHandler* socketHandler) final;
 
 private slots:
     //login button clicked

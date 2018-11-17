@@ -13,6 +13,9 @@ public:
 
 private:
     Ui::AdsDialog ui;
+
+private slots:
+    void onUserAdsCostChanged(double newCost);
 };
 
 #endif // ADSDIALOG_H

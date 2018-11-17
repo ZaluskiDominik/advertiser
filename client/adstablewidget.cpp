@@ -3,7 +3,7 @@
 #include <QMessageBox>
 #include <QHeaderView>
 #include "../shared/time.h"
-#include "userdata.h"
+#include "../shared/userdata.h"
 
 extern SocketHandler socketHandler;
 extern UserData user;
@@ -25,13 +25,6 @@ void AdsTableWidget::onDataReceived(Request req, SocketHandler *)
         onGetActivePriceListResponse(req);
     else if(req.name == Request::GET_ADS)
         onGetAdsResponse(req);
-}
-
-void AdsTableWidget::registerRequestsReceiver(SocketHandler *socketHandler)
-{
-    RequestReceiver::registerRequestsReceiver(socketHandler);
-
-    socketHandler->addRequestReceiver(*this);
 }
 
 void AdsTableWidget::initTable()
@@ -93,7 +86,11 @@ void AdsTableWidget::addsEmptyAdsContainers()
     {
         QStringList timeBoundaries = item(i, 0)->text().split(" - ");
         for (int j = 1 ; j < columnCount() ; j++)
-            setCellWidget( i, j, new AdsContainer( timeBoundaries[0] + ":59", timeBoundaries[1] + ":59", j - 1 ) );
+        {
+            auto adContainer = new AdsContainer( timeBoundaries[0] + ":59", timeBoundaries[1] + ":59", j - 1 );
+            QObject::connect(adContainer, SIGNAL(userAdsCostChanged(double)), this, SLOT(onUserAdsCostChanged(double)));
+            setCellWidget( i, j, adContainer);
+        }
     }
 }
 
@@ -109,8 +106,14 @@ void AdsTableWidget::addAds(QVector<AdInfo> &ads)
         //set appropriate background color to ad widget
         QColor adColor = ( user.id == i->ownerId ) ? usersAdColor : otherAdColor;
         //add ad to add container
-        static_cast<AdsContainer*>(cellWidget(row, col))->addAd(*i, adColor);
+        AdWidget* adWidget = static_cast<AdsContainer*>(cellWidget(row, col))->addAd(*i, adColor);
+
+        //increase total cost of user's ads
+        if ( user.id == i->ownerId )
+            userAdsCost += adWidget->getAdCost();
     }
+
+    emit userAdsCostChanged(userAdsCost);
 }
 
 void AdsTableWidget::sendGetActivePriceListRequest()
@@ -154,4 +157,12 @@ void AdsTableWidget::onGetAdsResponse(Request &req)
     QDataStream ss(&req.data, QIODevice::ReadOnly);
     ss >> ads;
     addAds(ads);
+}
+
+void AdsTableWidget::onUserAdsCostChanged(double change)
+{
+    //update cost
+    userAdsCost += change;
+
+    emit userAdsCostChanged(userAdsCost);
 }

@@ -13,11 +13,9 @@ class AllPriceListsWidget : public QWidget, public RequestReceiver
 
 public:
     explicit AllPriceListsWidget(QWidget *parent = nullptr);
-    ~AllPriceListsWidget();
 
 protected:
     void onDataReceived(Request req, SocketHandler*) final;
-    void registerRequestsReceiver(SocketHandler* socketHandler) final;
 
 private:
     Ui::AllPriceListsWidget ui;

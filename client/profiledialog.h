@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include "ui_profiledialog.h"
-#include "userdata.h"
+#include "../shared/userdata.h"
 #include "../shared/sockethandler.h"
 
 class ProfileDialog : public QDialog, public RequestReceiver
@@ -31,7 +31,6 @@ protected:
     void closeEvent(QCloseEvent* e);
 
     virtual void onDataReceived(Request req, SocketHandler*) final;
-    virtual void registerRequestsReceiver(SocketHandler* socketHandler) final;
 
 private:
     Ui::ProfileDialog ui;
