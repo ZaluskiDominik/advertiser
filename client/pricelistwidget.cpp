@@ -129,6 +129,7 @@ void PriceListWidget::convertPriceListToTableContent(const PriceList &prices)
         //add prices fields
         auto weekPrice = new QTableWidgetItem( QString::number(prices.rows[i].weekPrice));
         ui.tableWidget->setItem(i, 1, weekPrice);
+
         auto weekendPrice = new QTableWidgetItem( QString::number(prices.rows[i].weekendPrice));
         ui.tableWidget->setItem(i, 2, weekendPrice);
 

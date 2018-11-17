@@ -62,6 +62,7 @@ void TcpServer::initResponsesToRequests()
     //list all callbacks in the same order as requests in requests.h are listed
     responsesToRequests = std::vector< void (TcpServer::*)(Request&, SocketHandler*, DBManager&) >{
         &TcpServer::onLoginAuthRequest,
+        &TcpServer::onGetUserDataRequest,
         &TcpServer::onChangeUserDataRequest,
         &TcpServer::onGetAllUsersData,
         &TcpServer::onDeleteUserRequest,
@@ -158,6 +159,29 @@ void TcpServer::sendLoginAuthResponse(quint32 receiverId, SocketHandler* socketH
     socketHandler->send( Request(receiverId, Request::LOGIN_AUTH, resp, Request::OK) );
 }
 
+void TcpServer::onGetUserDataRequest(Request &req, SocketHandler *socketHandler, DBManager &db)
+{
+    QDataStream in(&req.data, QIODevice::ReadOnly);
+    quint32 userId;
+    in >> userId;
+
+    QSqlQuery* query = db.prepare("SELECT * FROM users WHERE id = ?");
+    query->addBindValue(userId);
+    query->exec();
+
+    if (query->isActive())
+    {
+        query->first();
+        QByteArray bytes;
+        QDataStream out(&bytes, QIODevice::WriteOnly);
+        out << convertToUserData(query);
+
+        socketHandler->send( Request(req.receiverId, req.name, bytes, Request::OK) );
+    }
+    else
+        socketHandler->send( Request(req.receiverId, req.name, Request::ERROR) );
+}
+
 UserData TcpServer::convertToUserData(QSqlQuery *query)
 {
     UserData data;
@@ -244,6 +268,14 @@ void TcpServer::onDeleteUserRequest(Request &req, SocketHandler *socketHandler, 
     QSqlQuery* query = db.prepare("DELETE FROM users WHERE id = ?");
     query->addBindValue(userId);
     query->exec();
+
+    //if user was succesfully deleted, remove all ads of that user
+    if (query->isActive())
+    {
+        query->prepare("DELETE FROM ads WHERE user_id = ?");
+        query->addBindValue(userId);
+        query->exec();
+    }
 
     Request::RequestStatus status = ( query->isActive() ) ? Request::OK : Request::ERROR;
     socketHandler->send( Request(req.receiverId, req.name, status) );

@@ -63,7 +63,13 @@ bool AdEditorDialog::eventFilter(QObject *target, QEvent *event)
     Q_UNUSED(target);
     if (event->type() == QEvent::KeyPress)
     {
-        if (static_cast<QKeyEvent*>(event)->key() == Qt::Key_Backspace && ui.startHour->cursorPosition() < 4)
+        int key = static_cast<QKeyEvent*>(event)->key();
+        //prevent deleting hour(first two digits) in startHour line edit
+        if (key == Qt::Key_Backspace && ui.startHour->cursorPosition() < 4)
+            return true;
+
+        //prevent user from typying invalid minutet and seconds
+        if ( key >= Qt::Key_6 && key <= Qt::Key_9 && !(ui.startHour->cursorPosition() % 3) )
             return true;
     }
     return QDialog::eventFilter(target, event);
@@ -135,7 +141,7 @@ void AdEditorDialog::updateAdCost()
     Time startTime(ui.startHour->text());
     Time endTime = startTime + Time( ui.duration->text().toInt() - 1 );
     double cost = AdWidget::calculateAdCost(startTime, endTime, weekDayNr);
-    ui.cost->setText("Koszt " + QString::number(cost) + "zł");
+    ui.cost->setText("Koszt: " + QString::number(cost) + "zł");
 }
 
 void AdEditorDialog::initWeekDayName()

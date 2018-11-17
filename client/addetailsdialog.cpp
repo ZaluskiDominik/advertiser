@@ -1,6 +1,7 @@
 #include "addetailsdialog.h"
 #include "../shared/sockethandler.h"
 #include <QMessageBox>
+#include "../shared/userdata.h"
 
 extern SocketHandler socketHandler;
 
@@ -10,16 +11,30 @@ AdDetailsDialog::AdDetailsDialog(const AdWidget* _targetAd, QWidget *parent)
     ui.setupUi(this);
     registerRequestsReceiver(&socketHandler);
 
-    ui.ownerLogin->setText("");
+    //set startHour, duration and cost of ad in appropriate edit lines
     ui.startHour->setText( targetAd->getAdInfo().startHour.getFullHour() );
     ui.duration->setText( QString::number(targetAd->getAdInfo().getDuration()) );
     ui.cost->setText( QString::number(targetAd->getAdCost()) + "zł" );
+
+    //request login of ad's owner
+    sendGetUserDataRequest();
 }
 
 void AdDetailsDialog::onDataReceived(Request req, SocketHandler *)
 {
     if (req.name == Request::REMOVE_AD)
         onRemoveAdResponse(req);
+    else if (req.name == Request::GET_USER_DATA)
+        onGetUserDataResponse(req);
+}
+
+void AdDetailsDialog::sendGetUserDataRequest()
+{
+    QByteArray bytes;
+    QDataStream ss(&bytes, QIODevice::WriteOnly);
+    ss << targetAd->getAdInfo().ownerId;
+
+    socketHandler.send( Request(getReceiverId(), Request::GET_USER_DATA, bytes) );
 }
 
 void AdDetailsDialog::onRemoveAdResponse(Request &req)
@@ -32,6 +47,19 @@ void AdDetailsDialog::onRemoveAdResponse(Request &req)
 
     emit removedAd(const_cast<AdWidget*>(targetAd));
     deleteLater();
+}
+
+void AdDetailsDialog::onGetUserDataResponse(Request &req)
+{
+    //if there wasn't any errors, set ownerLogin label's text to user's login
+    if (req.status == Request::OK)
+    {
+        QDataStream ss(&req.data, QIODevice::ReadOnly);
+        UserData userData;
+        ss >> userData;
+
+        ui.ownerLogin->setText(userData.login);
+    }
 }
 
 void AdDetailsDialog::on_removeAdBtn_clicked()

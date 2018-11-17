@@ -56,6 +56,9 @@ private:
     //send response if login was successfull
     void sendLoginAuthResponse(quint32 receiverId, SocketHandler *socketHandler, const UserData &userData, bool isAuth);
 
+    //client wants to get data about given user
+    void onGetUserDataRequest(Request& req, SocketHandler* socketHandler, DBManager &db);
+
     //returns UserData object converted from query records
     UserData convertToUserData(QSqlQuery* query);
     //client wants to change his data, save changes in db

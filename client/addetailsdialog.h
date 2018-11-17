@@ -21,8 +21,14 @@ private:
 
     const AdWidget* targetAd;
 
+    //get from server login of target ad's owner
+    void sendGetUserDataRequest();
+
     //response from server to requesting removal of ad
     void onRemoveAdResponse(Request& req);
+
+    //user's data was received from server
+    void onGetUserDataResponse(Request& req);
 
 private slots:
     void on_removeAdBtn_clicked();
