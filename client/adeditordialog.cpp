@@ -48,6 +48,15 @@ void AdEditorDialog::setTargetAd(const AdWidget *targetAd)
     target = targetAd;
 }
 
+int AdEditorDialog::getTotalDurationTime(const QVector<AdWidget *> &ads)
+{
+    int takenTime = 0;
+    for (auto i = ads.begin() ; i != ads.end() ; i++)
+        takenTime += (*i)->getAdInfo().getDuration();
+
+    return takenTime;
+}
+
 void AdEditorDialog::onDataReceived(Request req, SocketHandler *)
 {
     if (req.name == Request::ADD_NEW_AD)
@@ -86,6 +95,7 @@ void AdEditorDialog::init()
 AdInfo AdEditorDialog::convertToAdInfo()
 {
     AdInfo info;
+    info.ownerId = user.id;
     //start and end hours
     info.startHour = ui.startHour->text();
     info.endHour = info.startHour + Time( ui.duration->text().toInt() - 1 );
@@ -171,10 +181,7 @@ bool AdEditorDialog::adIntersectWithExistingAds(const Time& startHour, const Tim
 int AdEditorDialog::freeTimeForAd()
 {
     //calculate sum of durations of all existing ads
-    int takenTime = 0;
-    for (auto i = existingAds.begin() ; i != existingAds.end() ; i++)
-        takenTime += (*i)->getAdInfo().getDuration();
-
+    int takenTime = getTotalDurationTime(existingAds);
     return AdWidget::getMaxTotalAdsDuration() - takenTime;
 }
 
@@ -189,8 +196,6 @@ void AdEditorDialog::on_saveBtn_clicked()
         QByteArray data;
         QDataStream ss(&data, QIODevice::WriteOnly);
 
-        //owner's id
-        ss << user.id;
         //price list id
         ss << AdWidget::getPriceList().priceListId;
         //ad info

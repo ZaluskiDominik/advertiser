@@ -16,6 +16,7 @@ AdsContainer::AdsContainer(Time _minTime, Time _maxTime, int _weekDayNr, QWidget
 {
     weekDayNr = _weekDayNr;
     initLayout();
+    calculateAvgPricePerMinute();
 }
 
 AdWidget *AdsContainer::addAd(AdInfo &ad, QColor adColor)
@@ -36,7 +37,41 @@ AdWidget *AdsContainer::addAd(AdInfo &ad, QColor adColor)
     //add ad to vector of added ads
     ads.insert(adIndex, adWidget);
 
+    //if it's an ad of current user, emit signal that user's total ads cost must be updated
+    if (adWidget->getAdInfo().ownerId ==  user.id)
+        emit userAdsCostChanged(adWidget->getAdCost());
+
     return adWidget;
+}
+
+Time AdsContainer::findFirstNotUsedSlot(int duration, bool *found)
+{
+    Time startTime = minTime;
+    Time endTime;
+
+    //if sum of durations of existing ads in this containser + duration of a new ad exceeds max limit
+    if ( AdEditorDialog::getTotalDurationTime(ads) + duration > AdWidget::getMaxTotalAdsDuration() )
+    {
+        //time for ad could't be found
+        *found = false;
+        return Time(0);
+    }
+
+    //function that checks if there is enough time between startTime and endTime for a new ad
+    auto foundFun = [](const Time& startTime, const Time& endTime, int duration){
+        return ( (endTime - startTime).getSeconds() + 1 >= duration );
+    };
+
+    for (int i = 0 ; i < ads.size() ; i++)
+    {
+        endTime = ads[i]->getAdInfo().startHour - Time(1);
+        if ( ( (*found) = foundFun(startTime, endTime, duration) ) )
+            return startTime;
+        startTime = ads[i]->getAdInfo().endHour + Time(1);
+    }
+
+    *found = foundFun(startTime, maxTime, duration);
+    return startTime;
 }
 
 void AdsContainer::removeAd(AdWidget *adWidget)
@@ -45,8 +80,22 @@ void AdsContainer::removeAd(AdWidget *adWidget)
     ads.removeOne(adWidget);
     layout->removeWidget(adWidget);
 
+    //if it's an ad of current user, emit signal that user's total ads cost must be updated
+    if (adWidget->getAdInfo().ownerId ==  user.id)
+        emit userAdsCostChanged( -adWidget->getAdCost() );
+
     //delete ad
     adWidget->deleteLater();
+}
+
+int AdsContainer::getWeekDayNr() const
+{
+    return weekDayNr;
+}
+
+double AdsContainer::getAvgPricePerMinute()
+{
+    return avgPricePerMinute;
 }
 
 void AdsContainer::paintEvent(QPaintEvent* e)
@@ -140,13 +189,19 @@ void AdsContainer::openAdDetails(AdWidget *targetAd)
     QObject::connect(adDetails, SIGNAL(removedAd(AdWidget*)), this, SLOT(onRemovedAd(AdWidget*)));
 }
 
+void AdsContainer::calculateAvgPricePerMinute()
+{
+    double durationMinutes = ( (maxTime - minTime).getSeconds() + 1 ) / 60;
+    avgPricePerMinute = AdWidget::calculateAdCost(minTime, maxTime, weekDayNr) / durationMinutes;
+}
+
 void AdsContainer::onAdClicked(AdWidget *adWidget)
 {
     //if user is admin, open dialog with clicked ad's details
-    if ( user.isAdmin )
+    if (user.isAdmin)
         openAdDetails(adWidget);
-    //if user isn't an admin, open editor for editing choosen ad
-    else
+    //if user isn't an admin and clicked ad belongs to him, open editor for editing choosen ad
+    else if ( adWidget->getAdInfo().ownerId == user.id )
         openAdEditor(adWidget);
 }
 
@@ -156,9 +211,6 @@ void AdsContainer::onAddedNewAd(AdInfo adInfo, AdEditorDialog* adEditor)
     AdWidget* newAd = addAd(adInfo, userAdColor);
     //set new ad as a target ad of sender AdEditorDialog object
     adEditor->setTargetAd(newAd);
-
-    //emit signal informing that update of user's ads cost is needed
-    emit userAdsCostChanged(newAd->getAdCost());
 }
 
 void AdsContainer::onModificatedAd(AdWidget *adWidget, Time startHour, Time endHour)
@@ -178,13 +230,6 @@ void AdsContainer::onModificatedAd(AdWidget *adWidget, Time startHour, Time endH
 
 void AdsContainer::onRemovedAd(AdWidget *adWidget)
 {
-    //if signal was emitted by AdEditor
-    if ( dynamic_cast<AdEditorDialog*>(sender()) )
-    {
-        //emit signal informing that update of user's ads cost is needed
-        emit userAdsCostChanged( -adWidget->getAdCost() );
-    }
-
     //remove ad
     removeAd(adWidget);
 }

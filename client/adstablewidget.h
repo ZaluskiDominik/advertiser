@@ -12,14 +12,23 @@ class AdsTableWidget : public QTableWidget, public RequestReceiver
 public:
     explicit AdsTableWidget(QWidget *parent = nullptr);
 
+    //colors for ads that belongs to user and for ads that are owned by other users
+    static const QColor usersAdColor;
+    static const QColor otherAdColor;
+
+    //returnw ads container object at given position in table
+    AdsContainer* getAdsContainer(int row, int weekDayNr);
+    AdsContainer* getAdsContainer(Time time, int weekDayNr);
+
+    //returns cost of all ads that belongs to current user
+    double getUserAdsCost();
+
+    const PriceList& getPriceList();
+
 protected:
     void onDataReceived(Request req, SocketHandler*) final;
 
 private:
-    //colors for ads that belongs to user and for ads that are owned by other users
-    const QColor usersAdColor = Qt::green;
-    const QColor otherAdColor = Qt::gray;
-
     //total cost of all user's ads
     double userAdsCost = 0;
 

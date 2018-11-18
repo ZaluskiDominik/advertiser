@@ -8,15 +8,37 @@
 extern SocketHandler socketHandler;
 extern UserData user;
 
+const QColor AdsTableWidget::usersAdColor = Qt::green;
+const QColor AdsTableWidget::otherAdColor = Qt::gray;
+
 AdsTableWidget::AdsTableWidget(QWidget *parent)
     :QTableWidget(parent)
 {
     registerRequestsReceiver(&socketHandler);
 
-    //create table
-    initTable();
     //get active price list
     sendGetActivePriceListRequest();
+}
+
+AdsContainer *AdsTableWidget::getAdsContainer(int row, int weekDayNr)
+{
+    return static_cast<AdsContainer*>(cellWidget(row, weekDayNr + 1));
+}
+
+AdsContainer *AdsTableWidget::getAdsContainer(Time time, int weekDayNr)
+{
+    int row = time.getSeconds() / ( hoursPeriodDiff * 60 );
+    return getAdsContainer(row, weekDayNr);
+}
+
+double AdsTableWidget::getUserAdsCost()
+{
+    return userAdsCost;
+}
+
+const PriceList &AdsTableWidget::getPriceList()
+{
+    return priceList;
 }
 
 void AdsTableWidget::onDataReceived(Request req, SocketHandler *)
@@ -87,9 +109,9 @@ void AdsTableWidget::addsEmptyAdsContainers()
         QStringList timeBoundaries = item(i, 0)->text().split(" - ");
         for (int j = 1 ; j < columnCount() ; j++)
         {
-            auto adContainer = new AdsContainer( timeBoundaries[0] + ":59", timeBoundaries[1] + ":59", j - 1 );
+            auto adContainer = new AdsContainer( timeBoundaries[0] + ":00", timeBoundaries[1] + ":59", j - 1 );
             QObject::connect(adContainer, SIGNAL(userAdsCostChanged(double)), this, SLOT(onUserAdsCostChanged(double)));
-            setCellWidget( i, j, adContainer);
+            setCellWidget(i, j, adContainer);
         }
     }
 }
@@ -98,22 +120,12 @@ void AdsTableWidget::addAds(QVector<AdInfo> &ads)
 {
     for (auto i = ads.begin() ; i != ads.end() ; i++)
     {
-        //calculate row of ad container to ehich ad will be inserted
-        int row = i->startHour.getSeconds() / 60 / hoursPeriodDiff;
-        //calculate column
-        int col = static_cast<int>(i->weekDayNr) + 1;
-
         //set appropriate background color to ad widget
         QColor adColor = ( user.id == i->ownerId ) ? usersAdColor : otherAdColor;
-        //add ad to add container
-        AdWidget* adWidget = static_cast<AdsContainer*>(cellWidget(row, col))->addAd(*i, adColor);
-
-        //increase total cost of user's ads
-        if ( user.id == i->ownerId )
-            userAdsCost += adWidget->getAdCost();
+        int weekDayNr = static_cast<int>(i->weekDayNr);
+        //add ad to ad container
+        getAdsContainer(i->startHour, weekDayNr)->addAd(*i, adColor);
     }
-
-    emit userAdsCostChanged(userAdsCost);
 }
 
 void AdsTableWidget::sendGetActivePriceListRequest()
@@ -151,6 +163,9 @@ void AdsTableWidget::onGetAdsResponse(Request &req)
         QMessageBox::warning(this, "Błąd", "Nie udało się pobrać informacji o zapisanych reklamach!");
         return;
     }
+
+    //resize table and create cells
+    initTable();
 
     //retrieve ads and add them to table
     QVector<AdInfo> ads;

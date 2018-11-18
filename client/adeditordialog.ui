@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>AdEditorDialog</class>
  <widget class="QDialog" name="AdEditorDialog">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -182,7 +185,7 @@ color: skyblue;
 margin-top 5px;</string>
      </property>
      <property name="text">
-      <string>Koszt: 0</string>
+      <string>Koszt: 0zł</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

@@ -18,7 +18,14 @@ public:
     //adds an add
     AdWidget* addAd(AdInfo& ad, QColor adColor);
 
+    //find not used time boundaries where ad can be inserted
+    Time findFirstNotUsedSlot(int duration, bool* found);
+
     void removeAd(AdWidget* adWidget);
+
+    int getWeekDayNr() const;
+
+    double getAvgPricePerMinute();
 
     //color of added ad by user
     const static QColor userAdColor;
@@ -43,6 +50,9 @@ private:
     //time boundaries for ads
     const Time minTime, maxTime;
 
+    //average price for 1 minute ad
+    double avgPricePerMinute;
+
     //creates verical layout for ads and sets it to the widget
     void initLayout();
 
@@ -64,17 +74,20 @@ private:
     //creates and opens AdDetailsDialog object
     void openAdDetails(AdWidget* targetAd);
 
+    //calculate average price that user must pay for adding 1 minute ad
+    void calculateAvgPricePerMinute();
+
 private slots:
     //AdWidget was clicked
     void onAdClicked(AdWidget* adWidget);
 
-    //user added new ad
+    //user added new ad in ad editor
     void onAddedNewAd(AdInfo adInfo, AdEditorDialog* adEditor);
 
-    //ad's data was changed by user
+    //ad's data was changed by user in ad editor
     void onModificatedAd(AdWidget* adWidget, Time startHour, Time endHour);
 
-    //user removed ad
+    //user removed ad in ad editor
     void onRemovedAd(AdWidget* adWidget);
 
 signals:

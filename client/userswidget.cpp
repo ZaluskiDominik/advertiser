@@ -64,7 +64,8 @@ void UsersWidget::requestDeleteUser()
     //send to server selected user's id
     QByteArray bytes;
     QDataStream stream(&bytes, QIODevice::WriteOnly);
-    stream << ui.columnList->getFieldValue( static_cast<unsigned>(ui.columnList->getCurrentRow()), 0 );
+    stream << static_cast<quint32>(ui.columnList->getFieldValue( static_cast<unsigned>(ui.columnList->getCurrentRow()), 0 ).toUInt());
+
     socketHandler.send( Request(getReceiverId(), Request::DELETE_USER, bytes) );
 }
 

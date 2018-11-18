@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QDebug>
 #include "../shared/sockethandler.h"
 #include "../shared/userdata.h"
 #include <QGraphicsDropShadowEffect>
@@ -122,18 +121,12 @@ void MainWindow::onStackedWidgetChanged(int index)
 {
     if ( ui.stackedWidget->indexOf(&loginWidget) == index )
     {
-        //changed to login, set fixed size of the screen
-        setFixedSize(700, 500);
-        resize(700, 500);
         //hide menu and tool bar
         ui.mainToolBar->hide();
         menuWidget()->hide();
     }
     else
     {
-        //changed to main panel, unset fixed size of the screen
-        setMinimumSize(400, 500);
-        setMaximumSize(9999, 9999);
         //display menu and toolbar
         ui.mainToolBar->show();
         menuWidget()->show();

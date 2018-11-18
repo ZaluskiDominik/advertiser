@@ -42,8 +42,11 @@ public:
         ADD_NEW_PRICE_LIST,
         //get all ads stored in db
         GET_ADS,
+        //(price list's id, AdInfo object)
         ADD_NEW_AD,
+        //(price list's id, AdInfo object)
         MODIFY_AD,
+        //(ad's id)
         REMOVE_AD,
 
         //element used to retrieve number of requests, it's not a request!

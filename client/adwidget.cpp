@@ -1,6 +1,9 @@
 #include "adwidget.h"
 #include <QPainter>
 #include <cmath>
+#include "../shared/userdata.h"
+
+extern UserData user;
 
 const QColor AdWidget::hoverColor(QColor(211, 0, 211, 40));
 
@@ -45,17 +48,15 @@ double AdWidget::getAdCost() const
 {
     return adCost;
 }
-#include <QDebug>
+
 double AdWidget::calculateAdCost(Time startHour, Time endHour, int weekDayNr)
 {
     double cost = 0;
-//    qDebug() << "hours: " << startHour.getFullHour() << "  " << endHour.getFullHour();
 
     QStringList priceListHours = priceList->rows[0].hours.split("-");
     int priceListHoursDiff = ( Time(priceListHours[1]) - Time(priceListHours[0]) + Time(60) ).getSeconds();
     int startIndex = startHour.getSeconds() / priceListHoursDiff;
 
-//    qDebug() << "start index: " << startIndex;
     int i = startIndex;
     Time priceListStartHour, priceListEndHour;
 
@@ -66,12 +67,8 @@ double AdWidget::calculateAdCost(Time startHour, Time endHour, int weekDayNr)
         priceListEndHour = QString(priceListHours[1]) + ":59";
 
         int partDuration = ( std::min(priceListEndHour, endHour) - std::max(priceListStartHour, startHour) ).getSeconds() + 1;
-//        qDebug() << "end: " << std::min(priceListEndHour, endHour).getFullHour();
-//        qDebug() << "start: " << std::max(priceListStartHour, startHour).getFullHour();
-
-//        qDebug() << "part duration: " << partDuration;
         unsigned pricePerMinute = (weekDayNr >= 6) ? priceList->rows[i].weekendPrice : priceList->rows[i].weekPrice;
-//        qDebug() << "per minute: " << pricePerMinute;
+
         cost += static_cast<double>(partDuration) * static_cast<double>(pricePerMinute) / 60.0;
         i++;
     }
@@ -117,7 +114,11 @@ void AdWidget::paintEvent(QPaintEvent* e)
     p.setBrush(color);
     p.drawRect(0, 0, width(), height());
 
-    HoverLabel::paintEvent(e);
+    //draw hover effect only if this ad belongs to logged in user or if that user is an admin
+    if ( info.ownerId == user.id || user.isAdmin )
+        HoverLabel::paintEvent(e);
+    else
+        QLabel::paintEvent(e);
 
     //draw bottom border
     QPainter p2(this);

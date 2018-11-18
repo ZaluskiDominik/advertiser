@@ -5,6 +5,9 @@ AdminDialog::AdminDialog(QWidget *parent)
 {
     ui.setupUi(this);
     initStackedWidget();
+
+    setWindowFlags(Qt::Window | Qt::WindowMaximizeButtonHint | Qt::WindowMinimizeButtonHint
+                   | Qt::WindowCloseButtonHint);
 }
 
 void AdminDialog::initStackedWidget()

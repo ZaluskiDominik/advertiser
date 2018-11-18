@@ -20,6 +20,9 @@ public:
     //sets AdWidget that will be affected by changes entered by user
     void setTargetAd(const AdWidget* targetAd);
 
+    //returns sum sum of given ads' durations
+    static int getTotalDurationTime(const QVector<AdWidget*>& ads);
+
 protected:
     void onDataReceived(Request req, SocketHandler*) final;
 
@@ -60,7 +63,7 @@ private:
     //returns true if typed ad's time boundaries intersect with any other ad's time boundary
     bool adIntersectWithExistingAds(const Time &startHour, const Time &endHour);
 
-    //returns avilable time left for ad
+    //returns available time left for ad
     int freeTimeForAd();
 
     //response from server to requesting adding new ad

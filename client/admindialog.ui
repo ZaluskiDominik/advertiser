@@ -17,7 +17,7 @@
    <string>Dialog</string>
   </property>
   <property name="modal">
-   <bool>false</bool>
+   <bool>true</bool>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="spacing">

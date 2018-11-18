@@ -508,15 +508,13 @@ void TcpServer::onGetAdsRequest(Request &req, SocketHandler *socketHandler, DBMa
 void TcpServer::adDataChangeHelper(Request &req, SocketHandler *socketHandler, QSqlQuery* query, bool newAd)
 {
     QDataStream in(&req.data, QIODevice::ReadOnly);
-    quint32 userId;
-    in >> userId;
     quint32 priceListId;
     in >> priceListId;
     AdInfo adInfo;
     in >> adInfo;
 
     //add values to prepared query passed by function parameter
-    query->addBindValue(userId);
+    query->addBindValue(adInfo.ownerId);
     query->addBindValue(adInfo.weekDayNr);
     query->addBindValue(adInfo.startHour.getFullHour());
     query->addBindValue(adInfo.endHour.getFullHour());
