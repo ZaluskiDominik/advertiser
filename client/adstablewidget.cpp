@@ -15,6 +15,7 @@ AdsTableWidget::AdsTableWidget(QWidget *parent)
     :QTableWidget(parent)
 {
     registerRequestsReceiver(&socketHandler);
+    AdsContainer::resetNumLoggedInUserAds();
 
     //get active price list
     sendGetActivePriceListRequest();

@@ -44,7 +44,7 @@ protected:
     void mousePressEvent(QMouseEvent*);
 
 private:
-    const static QColor hoverColor;
+    static QColor darker(QColor c);
 
     //cost of this ad
     double adCost;

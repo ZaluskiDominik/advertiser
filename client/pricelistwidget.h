@@ -59,6 +59,8 @@ private:
     //whether price list table can be modified
     bool readOnly;
 
+    QVector<PriceListRow> prices;
+
     //pointer to tab associated to this price list
     PriceListTab* associatedTab = nullptr;
 
@@ -79,6 +81,9 @@ private:
 
     //response to requesting active price list
     void onGetActivePriceListResponse(Request& req);
+
+private slots:
+    void onCellChanged(int row, int col);
 };
 
 #endif // PRICELISTWIDGET_H

@@ -116,6 +116,11 @@ int AdsContainer::getNumLoggedInUserAds()
     return loggedInUserAdCounter;
 }
 
+void AdsContainer::resetNumLoggedInUserAds()
+{
+    loggedInUserAdCounter = 0;
+}
+
 void AdsContainer::paintEvent(QPaintEvent* e)
 {
     QPainter p(this);

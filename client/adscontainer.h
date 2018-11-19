@@ -34,6 +34,8 @@ public:
 
     static int getNumLoggedInUserAds();
 
+    static void resetNumLoggedInUserAds();
+
 protected:
     void paintEvent(QPaintEvent* e);
     void mousePressEvent(QMouseEvent* e);

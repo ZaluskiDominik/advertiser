@@ -5,8 +5,6 @@
 
 extern UserData user;
 
-const QColor AdWidget::hoverColor(QColor(211, 0, 211, 40));
-
 //current price list
 const PriceList* AdWidget::priceList;
 
@@ -15,7 +13,7 @@ int AdWidget::maxTotalAdsDuration;
 qreal AdWidget::heightToSecondsRatio;
 
 AdWidget::AdWidget(AdInfo &_info, QColor bcgColor, QString hoverText, QWidget *parent)
-    :HoverLabel(hoverColor, hoverText, parent)
+    :HoverLabel(darker(bcgColor), hoverText, parent)
 {
     info = _info;
     color = bcgColor;
@@ -129,6 +127,12 @@ void AdWidget::paintEvent(QPaintEvent* e)
 void AdWidget::mousePressEvent(QMouseEvent*)
 {
     emit clicked(this);
+}
+
+QColor AdWidget::darker(QColor c)
+{
+    auto _darker = [](int a) { return std::max(0, a - 32); };
+    return QColor( _darker(c.red()), _darker(c.green()), _darker(c.blue()) );
 }
 
 void AdWidget::calculateCost()

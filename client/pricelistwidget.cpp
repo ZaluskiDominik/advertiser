@@ -23,6 +23,7 @@ PriceListWidget::PriceListWidget(const PriceList &prices, bool _readOnly, QWidge
     //set price list's id
     priceListId = prices.priceListId;
 
+    this->prices = prices.rows;
     convertPriceListToTableContent(prices);
 }
 
@@ -140,6 +141,9 @@ void PriceListWidget::convertPriceListToTableContent(const PriceList &prices)
             setItemReadOnly(weekendPrice);
         }
     }
+
+    if ( !readOnly )
+        QObject::connect(ui.tableWidget, SIGNAL(cellChanged(int, int)), this, SLOT(onCellChanged(int, int)));
 }
 
 PriceList PriceListWidget::convertTableContentToPriceList()
@@ -186,4 +190,23 @@ void PriceListWidget::onGetActivePriceListResponse(Request &req)
     priceListId = prices.priceListId;
 
     convertPriceListToTableContent(prices);
+}
+
+void PriceListWidget::onCellChanged(int row, int col)
+{
+    QString text = ui.tableWidget->item(row, col)->text();
+
+    auto getPrice = [](PriceListRow& row, int col) -> quint32&
+        { return ( col == 1 ) ? row.weekPrice : row.weekendPrice; };
+
+    if ( QRegularExpression("^\\d{1,4}$").match(text).hasMatch() )
+    {
+        //valid number
+        getPrice(prices[row], col) = ui.tableWidget->item(row, col)->text().toUInt();
+    }
+    else
+    {
+        //invalid number, undo change
+        ui.tableWidget->item(row, col)->setText( QString::number(getPrice(prices[row], col)) );
+    }
 }
