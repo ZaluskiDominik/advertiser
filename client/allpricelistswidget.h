@@ -27,7 +27,7 @@ private:
     void onGetAllPriceListsResponse(Request& req);
 
     //adds new table with price list data to stacled widget and a tab corresponding to that price list
-    void addPriceList(PriceList& prices);
+    void addPriceList(const PriceList &prices);
 
     //connects to tab's context menu action's trigger signals and clicked signal
     void connectToTabsSignals(PriceListTab* tab);

@@ -182,6 +182,8 @@ void MainWindow::onPriceListClicked()
     QDialog* priceDialog = new QDialog(this);
     priceDialog->setModal(true);
     priceDialog->setAttribute(Qt::WA_DeleteOnClose);
+    priceDialog->setWindowFlags(Qt::Window | Qt::WindowMaximizeButtonHint | Qt::WindowMinimizeButtonHint
+                   | Qt::WindowCloseButtonHint);
 
     //create layout for dialog
     QHBoxLayout* priceLayout = new QHBoxLayout(priceDialog);

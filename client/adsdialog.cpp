@@ -1,6 +1,7 @@
 #include "adsdialog.h"
 #include "../shared/userdata.h"
 #include "../shared/sockethandler.h"
+#include "../shared/reader.h"
 
 extern UserData user;
 extern SocketHandler socketHandler;
@@ -124,11 +125,6 @@ void AdsDialog::pickAdsForUser()
                 sendAddNewAdRequest(adInfo);
             }
         }
-        else
-        {
-            //couldn't add ad to currently iterated AdsContainer object, don't consider that AdContainer futher
-            adsContainers.removeAt(i--);
-        }
     }
 
     ui.startAutoPickingBtn->setEnabled(true);
@@ -150,9 +146,7 @@ void AdsDialog::onRemoveAdResponse(Request &req)
     if (req.status == Request::OK)
     {
         //retrieve ad's id that was deleted from db
-        QDataStream ss(&req.data, QIODevice::ReadOnly);
-        quint32 adId;
-        ss >> adId;
+        quint32 adId = Reader(req).read<quint32>();
 
         //remove ad with that id
         auto i = adsToRemove.begin();
@@ -160,6 +154,7 @@ void AdsDialog::onRemoveAdResponse(Request &req)
         i->first->removeAd(i->second);
     }
 
+    //all response received
     if ( ++respCounter == adsToRemove.size() )
     {
         respCounter = 0;
@@ -184,9 +179,7 @@ void AdsDialog::onAddNewAdResponse(Request &req)
     if (req.status == Request::ERROR)
         return;
 
-    QDataStream ss(&req.data, QIODevice::ReadOnly);
-    AdInfo adInfo;
-    ss >> adInfo;
+    AdInfo adInfo = Reader(req).read<AdInfo>();
 
     //add new ad
     ui.adsTable->getAdsContainer(adInfo.startHour, static_cast<int>(adInfo.weekDayNr))

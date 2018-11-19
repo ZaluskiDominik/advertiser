@@ -21,7 +21,7 @@ AdsContainer::AdsContainer(Time _minTime, Time _maxTime, int _weekDayNr, QWidget
     calculateAvgPricePerMinute();
 }
 
-AdWidget *AdsContainer::addAd(AdInfo &ad, QColor adColor)
+AdWidget *AdsContainer::addAd(const AdInfo &ad, QColor adColor)
 {
     //find index where ad will be inserted
     int adIndex = calculateAdIndex(ad.startHour);

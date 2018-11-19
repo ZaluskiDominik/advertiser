@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include "../shared/userdata.h"
 #include <QKeyEvent>
+#include "../shared/reader.h"
 
 extern SocketHandler socketHandler;
 
@@ -236,9 +237,7 @@ void AdEditorDialog::onAddNewAdResponse(Request &req)
     }
 
     //retrieve ad info with ad's id
-    QDataStream ss(&req.data, QIODevice::ReadOnly);
-    AdInfo adInfo;
-    ss >> adInfo;
+    AdInfo adInfo = Reader(req).read<AdInfo>();
 
     //emit signal to AdContainer object in order to add this ad to it
     emit addedNewAd(adInfo, this);
@@ -258,9 +257,7 @@ void AdEditorDialog::onModifyAdResponse(Request &req)
         return;
     }
 
-    QDataStream ss(&req.data, QIODevice::ReadOnly);
-    AdInfo adInfo;
-    ss >> adInfo;
+    AdInfo adInfo = Reader(req).read<AdInfo>();
 
     emit modificatedAd(const_cast<AdWidget*>(target), adInfo.startHour, adInfo.endHour);
 }

@@ -4,6 +4,7 @@
 #include <QHeaderView>
 #include "../shared/time.h"
 #include "../shared/userdata.h"
+#include "../shared/reader.h"
 
 extern SocketHandler socketHandler;
 extern UserData user;
@@ -117,7 +118,7 @@ void AdsTableWidget::addsEmptyAdsContainers()
     }
 }
 
-void AdsTableWidget::addAds(QVector<AdInfo> &ads)
+void AdsTableWidget::addAds(const QVector<AdInfo> &ads)
 {
     for (auto i = ads.begin() ; i != ads.end() ; i++)
     {
@@ -144,8 +145,7 @@ void AdsTableWidget::onGetActivePriceListResponse(Request& req)
     }
 
     //get price list
-    QDataStream ss(&req.data, QIODevice::ReadOnly);
-    ss >> priceList;
+    priceList = Reader(req).read<PriceList>();
 
     //get ads from db
     sendGetAdsRequest();
@@ -169,10 +169,7 @@ void AdsTableWidget::onGetAdsResponse(Request &req)
     initTable();
 
     //retrieve ads and add them to table
-    QVector<AdInfo> ads;
-    QDataStream ss(&req.data, QIODevice::ReadOnly);
-    ss >> ads;
-    addAds(ads);
+    addAds( Reader(req).read<QVector<AdInfo>>() );
 }
 
 void AdsTableWidget::onUserAdsCostChanged(double change)

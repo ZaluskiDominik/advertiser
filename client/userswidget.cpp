@@ -2,6 +2,7 @@
 #include "../shared/sockethandler.h"
 #include <QMessageBox>
 #include "profiledialog.h"
+#include "../shared/reader.h"
 
 extern SocketHandler socketHandler;
 
@@ -109,9 +110,7 @@ void UsersWidget::onGetAllUsersDataResponse(Request &req)
     }
 
     //retrieve users' data
-    QDataStream stream(&req.data, QIODevice::ReadOnly);
-    QVector<UserData> usersData;
-    stream >> usersData;
+    QVector<UserData> usersData = Reader(req).read<QVector<UserData>>();
 
     //add rows with those data to ColumnListWidget instance
     for (auto i = usersData.begin() ; i != usersData.end() ; i++)

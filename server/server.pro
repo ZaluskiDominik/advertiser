@@ -35,7 +35,7 @@ SOURCES += \
     ../shared/pricelist.cpp \
     ../shared/adinfo.cpp \
     ../shared/time.cpp \
-    ../shared/userdata.cpp
+    ../shared/userdata.cpp \
 
 HEADERS += \
         dialog.h \
@@ -47,7 +47,8 @@ HEADERS += \
     ../shared/pricelist.h \
     ../shared/adinfo.h \
     ../shared/time.h \
-    ../shared/userdata.h
+    ../shared/userdata.h \
+    ../shared/reader.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

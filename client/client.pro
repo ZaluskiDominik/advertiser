@@ -81,7 +81,8 @@ HEADERS += \
     hoverlabel.h \
     adeditordialog.h \
     ../shared/userdata.h \
-    addetailsdialog.h
+    addetailsdialog.h \
+    ../shared/reader.h
 
 FORMS += \
         mainwindow.ui \

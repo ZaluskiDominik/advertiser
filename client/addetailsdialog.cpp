@@ -2,6 +2,7 @@
 #include "../shared/sockethandler.h"
 #include <QMessageBox>
 #include "../shared/userdata.h"
+#include "../shared/reader.h"
 
 extern SocketHandler socketHandler;
 
@@ -54,9 +55,7 @@ void AdDetailsDialog::onGetUserDataResponse(Request &req)
     //if there wasn't any errors, set ownerLogin label's text to user's login
     if (req.status == Request::OK)
     {
-        QDataStream ss(&req.data, QIODevice::ReadOnly);
-        UserData userData;
-        ss >> userData;
+        UserData userData = Reader(req).read<UserData>();
 
         ui.ownerLogin->setText(userData.login);
     }

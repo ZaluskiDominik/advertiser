@@ -11,7 +11,7 @@ class AdWidget : public HoverLabel
 {
     Q_OBJECT
 public:
-    explicit AdWidget(AdInfo& _info, QColor bcgColor, QString hoverText = "Edytuj", QWidget* parent = nullptr);
+    explicit AdWidget(const AdInfo& _info, QColor bcgColor, QString hoverText = "Edytuj", QWidget* parent = nullptr);
 
     //sets time boundaries of ad
     void setHours(const Time& startHour, const Time& endHour);

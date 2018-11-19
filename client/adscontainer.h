@@ -19,7 +19,7 @@ public:
     const static QColor userAdColor;
 
     //adds an add
-    AdWidget* addAd(AdInfo& ad, QColor adColor);
+    AdWidget* addAd(const AdInfo &ad, QColor adColor);
 
     //find not used time boundaries where ad can be inserted
     Time findFirstNotUsedSlot(int duration, bool* found);

@@ -3,6 +3,7 @@
 #include <QVector>
 #include "../shared/adinfo.h"
 #include "../shared/time.h"
+#include "../shared/reader.h"
 
 TcpServer::TcpServer(int _port, QObject* parent)
     :QTcpServer(parent)
@@ -116,7 +117,7 @@ void TcpServer::onLoginAuthRequest(Request &req, SocketHandler *socketHandler, D
 {
     User& user = getUserBySocketHandler(socketHandler);
 
-    //extract login credetials
+    //extract login credentials
     QString login, password;
     QDataStream in(&req.data, QIODevice::ReadOnly);
     in >> login >> password;
@@ -161,9 +162,7 @@ void TcpServer::sendLoginAuthResponse(quint32 receiverId, SocketHandler* socketH
 
 void TcpServer::onGetUserDataRequest(Request &req, SocketHandler *socketHandler, DBManager &db)
 {
-    QDataStream in(&req.data, QIODevice::ReadOnly);
-    quint32 userId;
-    in >> userId;
+    quint32 userId = Reader(req).read<quint32>();
 
     QSqlQuery* query = db.prepare("SELECT * FROM users WHERE id = ?");
     query->addBindValue(userId);
@@ -200,9 +199,7 @@ UserData TcpServer::convertToUserData(QSqlQuery *query)
 void TcpServer::onChangeUserDataRequest(Request& req, SocketHandler* socketHandler, DBManager& db)
 {
     //retrieve data that will be updated in db
-    QDataStream stream(&req.data, QIODevice::ReadOnly);
-    UserData userData;
-    stream >> userData;
+    UserData userData = Reader(req).read<UserData>();
 
     //if data was saved
     if ( saveUserData(userData, db) )
@@ -260,9 +257,7 @@ void TcpServer::onGetAllUsersData(Request &req, SocketHandler *socketHandler, DB
 void TcpServer::onDeleteUserRequest(Request &req, SocketHandler *socketHandler, DBManager& db)
 {
     //retrieve id of user that will be deleted
-    QDataStream in(&req.data, QIODevice::ReadOnly);
-    quint32 userId;
-    in >> userId;
+    quint32 userId = Reader(req).read<quint32>();
 
     //delete user with that id from db
     QSqlQuery* query = db.prepare("DELETE FROM users WHERE id = ?");
@@ -370,9 +365,7 @@ void TcpServer::onGetAllPriceListsRequest(Request &req, SocketHandler *socketHan
 
 void TcpServer::onChangeActivePriceListRequest(Request &req, SocketHandler *socketHandler, DBManager& db)
 {
-    QDataStream in(&req.data, QIODevice::ReadOnly);
-    quint32 priceListId;
-    in >> priceListId;
+    quint32 priceListId = Reader(req).read<quint32>();
 
     //run query setting price list with priceListId as active
     QSqlQuery* query = db.prepare("UPDATE active_price_list SET list_id = ?");
@@ -386,9 +379,7 @@ void TcpServer::onChangeActivePriceListRequest(Request &req, SocketHandler *sock
 
 void TcpServer::onRemovePriceListRequest(Request &req, SocketHandler *socketHandler, DBManager& db)
 {
-    QDataStream in(&req.data, QIODevice::ReadOnly);
-    quint32 priceListId;
-    in >> priceListId;
+    quint32 priceListId = Reader(req).read<quint32>();
 
     //run query deleting price list
     QSqlQuery* query = db.prepare("DELETE FROM price_lists WHERE price_list_id = ?");
@@ -398,13 +389,16 @@ void TcpServer::onRemovePriceListRequest(Request &req, SocketHandler *socketHand
     //if query failed to execute, send error status, else send ok status
     Request::RequestStatus status = ( query->isActive() ) ? Request::OK : Request::ERROR;
     socketHandler->send( Request(req.receiverId, req.name, status) );
+
+    //remove all ads associated with that price list
+    query->prepare("DELETE FROM ads WHERE price_list_id = ?");
+    query->addBindValue(priceListId);
+    query->exec();
 }
 
 void TcpServer::onSavePriceListRequest(Request &req, SocketHandler *socketHandler, DBManager& db)
 {
-    QDataStream in(&req.data, QIODevice::ReadOnly);
-    PriceList prices;
-    in >> prices;
+    PriceList prices = Reader(req).read<PriceList>();
 
     //prepare statement updating each row of price list that client want to modify
     QSqlQuery* query = db.prepare(QString("UPDATE price_lists SET week_price = ?, weekend_price = ?") +
@@ -429,9 +423,7 @@ void TcpServer::onSavePriceListRequest(Request &req, SocketHandler *socketHandle
 
 void TcpServer::onAddNewPriceListRequest(Request &req, SocketHandler *socketHandler, DBManager& db)
 {
-    QDataStream in(&req.data, QIODevice::ReadOnly);
-    PriceList prices;
-    in >> prices;
+    PriceList prices = Reader(req).read<PriceList>();
 
     //find max price list's id from db
     QSqlQuery* query = db.query("SELECT MAX(price_list_id) FROM price_lists");
@@ -507,11 +499,9 @@ void TcpServer::onGetAdsRequest(Request &req, SocketHandler *socketHandler, DBMa
 
 void TcpServer::adDataChangeHelper(Request &req, SocketHandler *socketHandler, QSqlQuery* query, bool newAd)
 {
-    QDataStream in(&req.data, QIODevice::ReadOnly);
-    quint32 priceListId;
-    in >> priceListId;
-    AdInfo adInfo;
-    in >> adInfo;
+    Reader reader(req);
+    quint32 priceListId = reader.read<quint32>();
+    AdInfo adInfo = reader.read<AdInfo>();
 
     //add values to prepared query passed by function parameter
     query->addBindValue(adInfo.ownerId);
@@ -553,9 +543,7 @@ void TcpServer::onModifyAdRequest(Request &req, SocketHandler *socketHandler, DB
 void TcpServer::onRemoveAdRequest(Request &req, SocketHandler *socketHandler, DBManager &db)
 {
     //get id od ad that will be deleted
-    QDataStream in(&req.data, QIODevice::ReadOnly);
-    quint32 adId;
-    in >> adId;
+    quint32 adId = Reader(req).read<quint32>();
 
     //run query deleting ad
     QSqlQuery* query = db.prepare("DELETE FROM ads WHERE id = ?");

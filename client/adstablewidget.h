@@ -48,7 +48,7 @@ private:
     void addsEmptyAdsContainers();
 
     //add ads to table
-    void addAds(QVector<AdInfo> &ads);
+    void addAds(const QVector<AdInfo> &ads);
 
     //get active price list
     void sendGetActivePriceListRequest();

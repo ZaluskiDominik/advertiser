@@ -12,7 +12,7 @@ int AdWidget::maxTotalAdsDuration;
 
 qreal AdWidget::heightToSecondsRatio;
 
-AdWidget::AdWidget(AdInfo &_info, QColor bcgColor, QString hoverText, QWidget *parent)
+AdWidget::AdWidget(const AdInfo &_info, QColor bcgColor, QString hoverText, QWidget *parent)
     :HoverLabel(darker(bcgColor), hoverText, parent)
 {
     info = _info;

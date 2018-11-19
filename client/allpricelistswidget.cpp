@@ -3,6 +3,7 @@
 #include "../shared/sockethandler.h"
 #include <QMessageBox>
 #include "../shared/time.h"
+#include "../shared/reader.h"
 
 extern SocketHandler socketHandler;
 
@@ -37,15 +38,13 @@ void AllPriceListsWidget::onGetAllPriceListsResponse(Request& req)
     }
 
     //retrieve all price lists and add them to stacked widget
-    QDataStream ss(&req.data, QIODevice::ReadOnly);
-    QVector<PriceList> priceLists;
-    ss >> priceLists;
+    QVector<PriceList> priceLists = Reader(req).read<QVector<PriceList>>();
 
     for (auto i = priceLists.begin() ; i != priceLists.end() ; i++)
         addPriceList(*i);
 }
 
-void AllPriceListsWidget::addPriceList(PriceList &prices)
+void AllPriceListsWidget::addPriceList(const PriceList &prices)
 {
     //widget with table that contains price list's data
     PriceListWidget* listWidget = new PriceListWidget(prices, false, ui.stackedWidget);
@@ -214,9 +213,5 @@ void AllPriceListsWidget::onAddNewPriceListResponse(Request &req)
         return;
     }
 
-    QDataStream ss(&req.data, QIODevice::ReadOnly);
-    PriceList list;
-    ss >> list;
-
-    addPriceList(list);
+    addPriceList( Reader(req).read<PriceList>() );
 }
