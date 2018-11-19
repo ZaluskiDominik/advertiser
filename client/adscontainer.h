@@ -15,11 +15,16 @@ class AdsContainer : public HoverLabel
 public:
     explicit AdsContainer(Time _minTime, Time _maxTime, int _weekDayNr, QWidget* parent = nullptr);
 
+    //color of added ad by user
+    const static QColor userAdColor;
+
     //adds an add
     AdWidget* addAd(AdInfo& ad, QColor adColor);
 
     //find not used time boundaries where ad can be inserted
     Time findFirstNotUsedSlot(int duration, bool* found);
+
+    const QVector<AdWidget*>& getAds();
 
     void removeAd(AdWidget* adWidget);
 
@@ -27,8 +32,7 @@ public:
 
     double getAvgPricePerMinute();
 
-    //color of added ad by user
-    const static QColor userAdColor;
+    static int getNumLoggedInUserAds();
 
 protected:
     void paintEvent(QPaintEvent* e);
@@ -37,6 +41,8 @@ protected:
 private:
     const static QColor defaultBcg;
     const static QColor hoverColor;
+
+    static int loggedInUserAdCounter;
 
     //nr of day in week when ad will be added
     int weekDayNr;

@@ -7,7 +7,9 @@
 const QColor AdsContainer::defaultBcg(240, 240, 240);
 const QColor AdsContainer::hoverColor(0, 250, 250, 40);
 
-const QColor AdsContainer::userAdColor = Qt::green;
+int AdsContainer::loggedInUserAdCounter = 0;
+
+const QColor AdsContainer::userAdColor(124, 252, 0);
 
 extern UserData user;
 
@@ -39,7 +41,10 @@ AdWidget *AdsContainer::addAd(AdInfo &ad, QColor adColor)
 
     //if it's an ad of current user, emit signal that user's total ads cost must be updated
     if (adWidget->getAdInfo().ownerId ==  user.id)
+    {
+        loggedInUserAdCounter++;
         emit userAdsCostChanged(adWidget->getAdCost());
+    }
 
     return adWidget;
 }
@@ -74,6 +79,11 @@ Time AdsContainer::findFirstNotUsedSlot(int duration, bool *found)
     return startTime;
 }
 
+const QVector<AdWidget *> &AdsContainer::getAds()
+{
+    return ads;
+}
+
 void AdsContainer::removeAd(AdWidget *adWidget)
 {
     //remove ad from ads vector and layout
@@ -82,7 +92,10 @@ void AdsContainer::removeAd(AdWidget *adWidget)
 
     //if it's an ad of current user, emit signal that user's total ads cost must be updated
     if (adWidget->getAdInfo().ownerId ==  user.id)
+    {
+        loggedInUserAdCounter--;
         emit userAdsCostChanged( -adWidget->getAdCost() );
+    }
 
     //delete ad
     adWidget->deleteLater();
@@ -96,6 +109,11 @@ int AdsContainer::getWeekDayNr() const
 double AdsContainer::getAvgPricePerMinute()
 {
     return avgPricePerMinute;
+}
+
+int AdsContainer::getNumLoggedInUserAds()
+{
+    return loggedInUserAdCounter;
 }
 
 void AdsContainer::paintEvent(QPaintEvent* e)

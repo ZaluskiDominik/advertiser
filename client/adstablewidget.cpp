@@ -8,7 +8,7 @@
 extern SocketHandler socketHandler;
 extern UserData user;
 
-const QColor AdsTableWidget::usersAdColor = Qt::green;
+const QColor AdsTableWidget::usersAdColor(124, 252, 0);
 const QColor AdsTableWidget::otherAdColor = Qt::gray;
 
 AdsTableWidget::AdsTableWidget(QWidget *parent)
@@ -63,8 +63,8 @@ void AdsTableWidget::initTable()
     verticalHeader()->setDefaultSectionSize(cellHeight);
 
     //set fixed width ot table's cells
-    horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-    horizontalHeader()->setDefaultSectionSize(200);
+    horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    horizontalHeader()->setMinimumSectionSize(180);
 
     //add hours and containers for ads
     addHoursColumn();

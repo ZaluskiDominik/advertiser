@@ -564,5 +564,5 @@ void TcpServer::onRemoveAdRequest(Request &req, SocketHandler *socketHandler, DB
 
     //send response to client if removal was succesfull
     Request::RequestStatus status = ( query->isActive() ) ? Request::OK : Request::ERROR;
-    socketHandler->send( Request(req.receiverId, req.name, status) );
+    socketHandler->send( Request(req.receiverId, req.name, req.data, status) );
 }

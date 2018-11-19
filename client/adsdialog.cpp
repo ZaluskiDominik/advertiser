@@ -21,6 +21,8 @@ void AdsDialog::onDataReceived(Request req, SocketHandler *)
 {
     if (req.name == Request::ADD_NEW_AD)
         onAddNewAdResponse(req);
+    else if (req.name == Request::REMOVE_AD)
+        onRemoveAdResponse(req);
 }
 
 QVector<int> AdsDialog::getCheckedDaysNr()
@@ -52,40 +54,36 @@ QVector<AdsContainer *> AdsDialog::getFilteredAdsContainers(const QVector<int>& 
     return adsContainers;
 }
 
-void AdsDialog::sendAddNewAdRequest(const AdInfo &adInfo)
+void AdsDialog::removeLoggedInUserAds()
 {
-    QByteArray data;
-    QDataStream ss(&data, QIODevice::WriteOnly);
+    //find all ads that wil be removed
+    for (int i = 0 ; i < 7 ; i++)
+    {
+        for (int j = 0 ; j < ui.adsTable->rowCount() ; j++)
+        {
+            AdsContainer* adsContainer = ui.adsTable->getAdsContainer(j, i);
+            auto ads = adsContainer->getAds();
+            for (auto i = ads.begin() ; i != ads.end() ; i++)
+            {
+                if ( (*i)->getAdInfo().ownerId == user.id )
+                    adsToRemove.push_back( std::pair<AdsContainer*, AdWidget*>(adsContainer, *i) );
+            }
+        }
+    }
 
-    ss << ui.adsTable->getPriceList().priceListId;
-    ss << adInfo;
+    if (adsToRemove.size() == 0)
+        pickAdsForUser();
 
-    socketHandler.send( Request(getReceiverId(), Request::ADD_NEW_AD, data) );
+    for (auto v : adsToRemove)
+        sendRemoveAdRequest(*v.second);
 }
 
-void AdsDialog::onAddNewAdResponse(Request &req)
+void AdsDialog::pickAdsForUser()
 {
-    if (req.status == Request::ERROR)
-        return;
-
-    QDataStream ss(&req.data, QIODevice::ReadOnly);
-    AdInfo adInfo;
-    ss >> adInfo;
-
-    //add new ad
-    ui.adsTable->getAdsContainer(adInfo.startHour, static_cast<int>(adInfo.weekDayNr))
-            ->addAd(adInfo, AdsTableWidget::usersAdColor);
-}
-
-void AdsDialog::onUserAdsCostChanged(double newCost)
-{
-    ui.userAdsCost->setText("Koszt reklam: " + QString::number(newCost) + "zł");
-}
-
-void AdsDialog::on_startAutoPickingBtn_clicked()
-{
+    //get filtered vector of adsContainers
     QVector<AdsContainer*> adsContainers = getFilteredAdsContainers( getCheckedDaysNr() );
 
+    //sort that vector by average price per minute
     auto sortFun = ( ui.cheapHours->isChecked() ) ?
         [](AdsContainer* a, AdsContainer* b) { return b->getAvgPricePerMinute() > a->getAvgPricePerMinute(); }
         :
@@ -93,7 +91,9 @@ void AdsDialog::on_startAutoPickingBtn_clicked()
 
     std::sort(adsContainers.begin(), adsContainers.end(), sortFun);
 
+    //get duration of ad for which place will be searched
     int adDuration = ui.duration->value();
+    //current cost of this users ads
     double totalCost = ui.adsTable->getUserAdsCost();
 
     for (int i = 0 ; i < adsContainers.size() ; i++)
@@ -130,4 +130,84 @@ void AdsDialog::on_startAutoPickingBtn_clicked()
             adsContainers.removeAt(i--);
         }
     }
+
+    ui.startAutoPickingBtn->setEnabled(true);
+}
+
+void AdsDialog::sendRemoveAdRequest(const AdWidget &adWidget)
+{
+    QByteArray bytes;
+    QDataStream ss(&bytes, QIODevice::WriteOnly);
+    ss << adWidget.getAdInfo().adId;
+
+    socketHandler.send( Request(getReceiverId(), Request::REMOVE_AD, bytes) );
+}
+
+void AdsDialog::onRemoveAdResponse(Request &req)
+{
+    static int respCounter = 0;
+
+    if (req.status == Request::OK)
+    {
+        //retrieve ad's id that was deleted from db
+        QDataStream ss(&req.data, QIODevice::ReadOnly);
+        quint32 adId;
+        ss >> adId;
+
+        //remove ad with that id
+        auto i = adsToRemove.begin();
+        for ( ; i->second->getAdInfo().adId != adId ; i++);
+        i->first->removeAd(i->second);
+    }
+
+    if ( ++respCounter == adsToRemove.size() )
+    {
+        respCounter = 0;
+        adsToRemove.clear();
+        pickAdsForUser();
+    }
+}
+
+void AdsDialog::sendAddNewAdRequest(const AdInfo &adInfo)
+{
+    QByteArray data;
+    QDataStream ss(&data, QIODevice::WriteOnly);
+
+    ss << ui.adsTable->getPriceList().priceListId;
+    ss << adInfo;
+
+    socketHandler.send( Request(getReceiverId(), Request::ADD_NEW_AD, data) );
+}
+
+void AdsDialog::onAddNewAdResponse(Request &req)
+{
+    if (req.status == Request::ERROR)
+        return;
+
+    QDataStream ss(&req.data, QIODevice::ReadOnly);
+    AdInfo adInfo;
+    ss >> adInfo;
+
+    //add new ad
+    ui.adsTable->getAdsContainer(adInfo.startHour, static_cast<int>(adInfo.weekDayNr))
+            ->addAd(adInfo, AdsTableWidget::usersAdColor);
+}
+
+void AdsDialog::onUserAdsCostChanged(double newCost)
+{
+    ui.userAdsCost->setText("Koszt reklam: " + QString::number(newCost) + "zł");
+
+    ui.numberUserAds->setText("Liczba reklam: " + QString::number(AdsContainer::getNumLoggedInUserAds()));
+}
+
+void AdsDialog::on_startAutoPickingBtn_clicked()
+{
+    ui.startAutoPickingBtn->setDisabled(true);
+
+    //if check box is checked remove all ads that belongs to currently logged in user
+    if (ui.removePreviousAds->isChecked())
+        removeLoggedInUserAds();
+    else
+    //if not, start picking ads
+        pickAdsForUser();
 }

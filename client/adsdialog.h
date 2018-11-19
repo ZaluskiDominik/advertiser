@@ -5,6 +5,7 @@
 #include "ui_adsdialog.h"
 #include <QVector>
 #include "../shared/requestreceiver.h"
+#include <utility>
 
 class AdsDialog : public QDialog, public RequestReceiver
 {
@@ -19,9 +20,21 @@ protected:
 private:
     Ui::AdsDialog ui;
 
+    QVector< std::pair<AdsContainer*, AdWidget*> > adsToRemove;
+
+    //returns vector of checked days numbers in week
     QVector<int> getCheckedDaysNr();
 
+    //returns adsConatiners from the given days numbers in week
     QVector<AdsContainer*> getFilteredAdsContainers(const QVector<int> &weekDayNumbers);
+
+    //removes all ads that belongs do currently logged in user
+    void removeLoggedInUserAds();
+
+    void pickAdsForUser();
+
+    void sendRemoveAdRequest(const AdWidget& adWidget);
+    void onRemoveAdResponse(Request& req);
 
     void sendAddNewAdRequest(const AdInfo& adInfo);
     void onAddNewAdResponse(Request& req);
