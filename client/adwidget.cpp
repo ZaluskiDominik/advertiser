@@ -105,6 +105,12 @@ qreal AdWidget::getHeightToSecondsRatio()
     return heightToSecondsRatio;
 }
 
+QString AdWidget::roundStrNumber(double num)
+{
+    QString str = QString::number(num, 'f', 2);
+    return ( str[0] == "-" ) ? str.mid(1) : str;
+}
+
 void AdWidget::paintEvent(QPaintEvent* e)
 {
     QPainter p(this);

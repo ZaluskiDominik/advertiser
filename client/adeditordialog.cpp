@@ -152,7 +152,7 @@ void AdEditorDialog::updateAdCost()
     Time startTime(ui.startHour->text());
     Time endTime = startTime + Time( ui.duration->text().toInt() - 1 );
     double cost = AdWidget::calculateAdCost(startTime, endTime, weekDayNr);
-    ui.cost->setText("Koszt: " + QString::number(cost) + "zł");
+    ui.cost->setText("Koszt: " + AdWidget::roundStrNumber(cost) + "zł");
 }
 
 void AdEditorDialog::initWeekDayName()

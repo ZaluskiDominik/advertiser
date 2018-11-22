@@ -188,7 +188,7 @@ void AdsDialog::onAddNewAdResponse(Request &req)
 
 void AdsDialog::onUserAdsCostChanged(double newCost)
 {
-    ui.userAdsCost->setText("Koszt reklam: " + QString::number(newCost) + "zł");
+    ui.userAdsCost->setText("Koszt reklam: " + AdWidget::roundStrNumber(newCost) + "zł");
 
     ui.numberUserAds->setText("Liczba reklam: " + QString::number(AdsContainer::getNumLoggedInUserAds()));
 }

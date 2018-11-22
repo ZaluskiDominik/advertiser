@@ -7,7 +7,6 @@
 //class representing send request or response
 class Request
 {
-    friend QDataStream& operator>>(QDataStream& stream, Request& req);
 public:
     //status of request
     enum RequestStatus
@@ -79,5 +78,6 @@ public:
     //cast operator to QbyteArray type
     operator QByteArray() const;
 };
+QDataStream& operator>>(QDataStream& stream, Request& req);
 
 #endif // REQUESTS_H

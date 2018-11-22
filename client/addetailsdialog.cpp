@@ -15,7 +15,7 @@ AdDetailsDialog::AdDetailsDialog(const AdWidget* _targetAd, QWidget *parent)
     //set startHour, duration and cost of ad in appropriate edit lines
     ui.startHour->setText( targetAd->getAdInfo().startHour.getFullHour() );
     ui.duration->setText( QString::number(targetAd->getAdInfo().getDuration()) );
-    ui.cost->setText( QString::number(targetAd->getAdCost()) + "zł" );
+    ui.cost->setText( AdWidget::roundStrNumber(targetAd->getAdCost()) + "zł" );
 
     //request login of ad's owner
     sendGetUserDataRequest();

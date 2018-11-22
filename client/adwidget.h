@@ -39,6 +39,8 @@ public:
     static void setHeightToSecondsRatio(qreal height);
     static qreal getHeightToSecondsRatio();
 
+    static QString roundStrNumber(double num);
+
 protected:
     void paintEvent(QPaintEvent* e);
     void mousePressEvent(QMouseEvent*);
